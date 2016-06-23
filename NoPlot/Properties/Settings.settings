@@ -1,0 +1,21 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="NoPlot.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="NoPlotId" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NPLT</Value>
+    </Setting>
+    <Setting Name="ServiceState" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="AskBefore" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="TabName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">LMN</Value>
+    </Setting>
+    <Setting Name="PanelName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Tools</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
