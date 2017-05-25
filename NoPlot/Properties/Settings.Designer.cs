@@ -61,7 +61,7 @@ namespace NoPlot.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("LMN")]
+        [global::System.Configuration.DefaultSettingValueAttribute("HKS")]
         public string TabName {
             get {
                 return ((string)(this["TabName"]));

@@ -1,0 +1,7 @@
+Replace message in Printing event popup:
+	Current: Would you like to print with the No Plot fuctionality?
+	Suggested: "Do you want to turn off 'NPLT' objects for this print?"
+
+Suggested to replace Yes|No buttons in printing event popup to:
+	Hide NPLT
+	Print NPLT

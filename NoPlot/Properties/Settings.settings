@@ -12,7 +12,7 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="TabName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">LMN</Value>
+      <Value Profile="(Default)">HKS</Value>
     </Setting>
     <Setting Name="PanelName" Type="System.String" Scope="User">
       <Value Profile="(Default)">Tools</Value>

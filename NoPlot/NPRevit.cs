@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Media.Imaging;
 using System.Windows.Interop;
 using Autodesk.Revit.DB.Events;
@@ -56,6 +57,8 @@ namespace NoPlot
         RibbonItem npButton;
         List<Category> npSubCats;
 
+        int revitVersion = 2017;
+
         public static NoPlotApp Instance
         {
             get { return npApp; }
@@ -74,6 +77,7 @@ namespace NoPlot
         public Result OnStartup(UIControlledApplication application)
         {
             npApp = this;
+            revitVersion = Convert.ToInt32(application.ControlledApplication.VersionNumber);
             
             // Start the events
             application.ControlledApplication.DocumentPrinting += new EventHandler<DocumentPrintingEventArgs>(Printing);
@@ -109,8 +113,28 @@ namespace NoPlot
                 ToolTip = "Settings for the No Plot command."
             };
 
+            // HKS Centric Stuff
+            // ******************************************
+
+            // Set the help file
+            System.IO.FileInfo fi = new System.IO.FileInfo(typeof(NoPlotApp).Assembly.Location);
+            System.IO.DirectoryInfo directory = fi.Directory;
+
+            string helpPath = directory.FullName + "\\help\\NoPlot.pdf";
+            ContextualHelp help = new ContextualHelp(ContextualHelpType.ChmFile, helpPath);
+            npltPBD.SetContextualHelp(help);
+
+            string settingsHelpPath = directory.FullName + "\\help\\NoPlotSettings.pdf";
+            ContextualHelp settingsHelp = new ContextualHelp(ContextualHelpType.ChmFile, settingsHelpPath);
+            settingsPBD.SetContextualHelp(settingsHelp);
+
+            // ******************************************
+            // End of HKS Centric stuff
+
             SplitButtonData sbd = new SplitButtonData("NoPlot", "No Plot");
+            sbd.SetContextualHelp(help);
             SplitButton sb = RevitCommon.UI.AddToRibbon(application, Properties.Settings.Default.TabName, Properties.Settings.Default.PanelName, sbd);
+            sb.SetContextualHelp(help);
             npButton = sb.AddPushButton(npltPBD) as PushButton;
             sb.AddPushButton(settingsPBD);
             sb.IsSynchronizedWithCurrentItem = false;
@@ -148,13 +172,79 @@ namespace NoPlot
         {
             if (serviceOn)
             {
+                // Do the no plot thing
+                doc = e.Document;
+                npIdentifier = Properties.Settings.Default.NoPlotId;
+                // Check to see if there are even any NPLT elements in the project.
+                bool npltFound = false;
+                
+                // First check subcategories
+                foreach (Category cat in doc.Settings.Categories)
+                {
+                    foreach(Category subCat in cat.SubCategories)
+                    {
+                        if(subCat.Name.Contains(npIdentifier))
+                        {
+                            npltFound = true;
+                            break;
+                        }
+                    }
+
+                    if (npltFound)
+                        break;
+                }
+                if (!npltFound)
+                {
+                    // Check ElementTypes
+                    //Get a list of elements in the project that have the npIdentifier in the type name
+                    FilterableValueProvider provider = new ParameterValueProvider(new ElementId(BuiltInParameter.ALL_MODEL_TYPE_NAME));
+                    FilterRule rule = new FilterStringRule(provider, new FilterStringContains(), npIdentifier, true);
+                    ElementParameterFilter epf = new ElementParameterFilter(rule, false);
+                    if(new FilteredElementCollector(doc).WherePasses(epf).ToElementIds().Count > 0)
+                    {
+                        npltFound = true;
+                    }
+                }
+                if (!npltFound)
+                {
+                    // Check ElementTypes
+                    //Get a list of elements in the project that have the npIdentifier in the type name
+                    FilterableValueProvider providerFam = new ParameterValueProvider(new ElementId(BuiltInParameter.ALL_MODEL_FAMILY_NAME));
+                    FilterRule ruleFam = new FilterStringRule(providerFam, new FilterStringContains(), npIdentifier, true);
+                    ElementParameterFilter epfFam = new ElementParameterFilter(ruleFam, false);
+                    new FilteredElementCollector(doc).WherePasses(epfFam).ToElementIds();
+                    
+                    if (new FilteredElementCollector(doc).WherePasses(epfFam).ToElementIds().Count > 0)
+                    {
+                        npltFound = true;
+                    }
+                }
+                if(!npltFound)
+                {
+                    IEnumerable<ElementId> npGroupElems = new FilteredElementCollector(doc).OfClass(typeof(Group)).ToElementIds();
+                    foreach (ElementId eid in npGroupElems)
+                    {
+                        Element gElem = doc.GetElement(eid);
+                        if (gElem.Name.Contains(npIdentifier))
+                        {
+                            npltFound = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!npltFound)
+                    return;
+
                 bool cont = true;
                 if(Properties.Settings.Default.AskBefore)
                 {
+
+
                     TaskDialog verifyDlg = new TaskDialog("Warning");
                     verifyDlg.TitleAutoPrefix = false;
                     verifyDlg.MainInstruction = "No Plot";
-                    verifyDlg.MainContent = "Would you like to print with the No Plot functionality?";
+                    verifyDlg.MainContent = "Do you want to turn off '" + npIdentifier + "' objects for this print?";
                     verifyDlg.CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No;
 
                     TaskDialogResult verifyResult = verifyDlg.Show();
@@ -169,12 +259,29 @@ namespace NoPlot
                     doc = e.Document;
                     npIdentifier = Properties.Settings.Default.NoPlotId;
                     
-                    // Get a list of elements in the project that have the npIdentifier
+                    // Get a list of elements in the project that have the npIdentifier in the type name
                     FilterableValueProvider provider = new ParameterValueProvider(new ElementId(BuiltInParameter.ALL_MODEL_TYPE_NAME));
                     FilterRule rule = new FilterStringRule(provider, new FilterStringContains(), npIdentifier, true);
                     ElementParameterFilter epf = new ElementParameterFilter(rule, false);
                     IEnumerable<ElementId> npElems = new FilteredElementCollector(doc).WherePasses(epf).ToElementIds();
                     npElementIds = npElems.ToList();
+
+                    FilterableValueProvider providerFam = new ParameterValueProvider(new ElementId(BuiltInParameter.ALL_MODEL_FAMILY_NAME));
+                    FilterRule ruleFam = new FilterStringRule(providerFam, new FilterStringContains(), npIdentifier, true);
+                    ElementParameterFilter epfFam = new ElementParameterFilter(ruleFam, false);
+                    IEnumerable<ElementId> npElemsFam = new FilteredElementCollector(doc).WherePasses(epfFam).ToElementIds();
+                    npElementIds.AddRange(npElemsFam.ToList());
+
+                    IEnumerable<ElementId> npGroupElems = new FilteredElementCollector(doc).OfClass(typeof(Group)).ToElementIds();
+                    foreach(ElementId eid in npGroupElems)
+                    {
+                        Element gElem = doc.GetElement(eid);
+                        if(gElem.Name.Contains(npIdentifier))
+                        {
+                            Group g = gElem as Group;
+                            npElementIds.AddRange(g.GetMemberIds());
+                        }
+                    }
 
                     List<ElementId> views = new List<ElementId>();
                     views.AddRange(e.GetViewElementIds());
@@ -251,17 +358,61 @@ namespace NoPlot
             ElementId viewTemplateId = view.ViewTemplateId;
             view.ViewTemplateId = new ElementId(-1);
 
+            // API for a view's category visibility changes at Revit 2018, so reflection is used to find the right method call.
+            Type viewType = view.GetType();
+            MethodInfo catVisMethod = null;
+            if (revitVersion > 2017)
+                catVisMethod = viewType.GetMethod("GetCategoryHidden");
+            else
+                catVisMethod = viewType.GetMethod("GetVisibility");
+
+            MethodInfo catHideMethod = null;
+            if (revitVersion > 2017)
+                catHideMethod = viewType.GetMethod("SetCategoryHidden");
+            else
+                catHideMethod = viewType.GetMethod("SetVisibility");
+
+
             //Temporary hide all of the subcateogries in the subcat list
             List<Category> hiddenSubCats = new List<Category>();
             foreach (Category cat in npSubCats)
             {
                 try
                 {
-                    if (view.GetVisibility(cat))
-                    {
+                    //<=2017 : Check if a category is visible
+                    //view.GetVisibility(cat);
+                    //view.SetVisibility(cat, bool visible);
 
-                        hiddenSubCats.Add(cat);
-                        view.SetVisibility(cat, false);
+                    //2018   : Check if a category is hidden in the view.
+                    //view.GetCategoryHidden(cat.Id);
+                    //view.SetCategoryHidden(cat.Id, bool hidden);
+
+                    if(revitVersion > 2017)
+                    {
+                        object[] paramArr = new object[] { cat.Id };
+                        var result = catVisMethod.Invoke(view, paramArr);
+                        // A result of false means a category is not hidden, aka is visible.
+                        // If that is the case, we need to hide it
+                        if ((bool)result == false)
+                        {
+                            hiddenSubCats.Add(cat);
+                            object[] setParamArr = new object[] { cat.Id, true };
+                            catHideMethod.Invoke(view, setParamArr);
+                        }
+                            
+                    }
+                    else // 2017 and earlier versions
+                    {
+                        object[] paramArr = new object[] { cat };
+                        var result = catVisMethod.Invoke(view, paramArr);
+                        // A result of true means a category is visible.
+                        // If that is the case, we need to hide it
+                        if ((bool)result == true)
+                        {
+                            hiddenSubCats.Add(cat);
+                            object[] setParamArr = new object[] { cat, false };
+                            catHideMethod.Invoke(view, setParamArr);
+                        }
                     }
                 }
                 catch { } // Subcategory does not exist, ie model category in drafting view.
@@ -287,6 +438,12 @@ namespace NoPlot
                 foreach (NoPlotObj np in npElements)
                 {
                     View v = doc.GetElement(np.View) as View;
+                    Type viewType = v.GetType();
+                    MethodInfo catHideMethod = null;
+                    if (revitVersion > 2017)
+                        catHideMethod = viewType.GetMethod("SetCategoryHidden");
+                    else
+                        catHideMethod = viewType.GetMethod("SetVisibility");
 
                     // Reset the temporary hide
                     v.DisableTemporaryViewMode(TemporaryViewMode.TemporaryHideIsolate);
@@ -301,7 +458,23 @@ namespace NoPlot
                     {
                         foreach (Category c in np.SubCategories)
                         {
-                            v.SetVisibility(c, true);
+                            //<=2017 : Check if a category is visible
+                            //view.GetVisibility(cat);
+                            //view.SetVisibility(cat, bool visible);
+
+                            //2018   : Check if a category is hidden in the view.
+                            //view.GetCategoryHidden(cat.Id);
+                            //view.SetCategoryHidden(cat.Id, bool hide);
+                            if(revitVersion > 2017)
+                            {
+                                object[] setParamArr = new object[] { c.Id, false };
+                                catHideMethod.Invoke(v, setParamArr);
+                            }
+                            else
+                            {
+                                object[] setParamArr = new object[] { c, true };
+                                catHideMethod.Invoke(v, setParamArr);
+                            }
                         }
                     }
                 }
