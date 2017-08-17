@@ -12,10 +12,10 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="TabName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">HKS</Value>
+      <Value Profile="(Default)">Add-Ins</Value>
     </Setting>
     <Setting Name="PanelName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">Tools</Value>
+      <Value Profile="(Default)">No Plot</Value>
     </Setting>
   </Settings>
 </SettingsFile>

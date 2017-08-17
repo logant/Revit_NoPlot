@@ -61,7 +61,7 @@ namespace NoPlot.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("HKS")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Add-Ins")]
         public string TabName {
             get {
                 return ((string)(this["TabName"]));
@@ -73,7 +73,7 @@ namespace NoPlot.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Tools")]
+        [global::System.Configuration.DefaultSettingValueAttribute("No Plot")]
         public string PanelName {
             get {
                 return ((string)(this["PanelName"]));
