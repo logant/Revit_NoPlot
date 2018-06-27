@@ -63,7 +63,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="RevitCommon, Version=1.2.1.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\RevitCommon.1.2.3\lib\net45\RevitCommon.dll</HintPath>
+      <HintPath>..\packages\RevitCommon.1.2.4\lib\net45\RevitCommon.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

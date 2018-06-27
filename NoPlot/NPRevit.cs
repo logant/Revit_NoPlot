@@ -130,11 +130,7 @@ namespace NoPlot
             };
 
             // Check for a settings file
-            string helpPath = null;
-            string tabName = null;
-            string panelName = null;
-
-            if (!RevitCommon.Logging.GetPluginSettings(typeof(NoPlotApp).Assembly.GetName().Name, out helpPath, out tabName, out panelName))
+            if (!RevitCommon.FileUtils.GetPluginSettings(typeof(NoPlotApp).Assembly.GetName().Name, out string helpPath, out string tabName, out string panelName))
             {
                 // Set the help file path
                 System.IO.FileInfo fi = new System.IO.FileInfo(typeof(NoPlotApp).Assembly.Location);
@@ -406,7 +402,7 @@ namespace NoPlot
                 string commandName = "No Plot";
                 string appVersion = doc.Application.VersionNumber;
 
-                RevitCommon.Logging.WriteToHome(commandName, appVersion, userName);
+                RevitCommon.FileUtils.WriteToHome(commandName, appVersion, userName);
             }
         }
 

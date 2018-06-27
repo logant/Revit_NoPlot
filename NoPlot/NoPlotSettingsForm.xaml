@@ -80,10 +80,10 @@
             <CheckBox x:Name="defaultOnCheckBox" Content="No Plot Watcher On By Default" HorizontalAlignment="Left" Margin="16,85,0,0" VerticalAlignment="Top" FontFamily="Arial" FontSize="14" Foreground="#FF404040"/>
             <CheckBox x:Name="verifyCheckBox" Content="Prompt About No Plot Before Printing" HorizontalAlignment="Left" Margin="16,120,0,0" VerticalAlignment="Top" FontFamily="Arial" FontSize="14" Foreground="#FF404040"/>
 
-            <Button x:Name="closeButton" Click="closeButton_Click" ContentTemplate="{StaticResource ButtonContentTemplate}"
+            <Button x:Name="CloseButton" Click="CloseButton_Click" ContentTemplate="{StaticResource ButtonContentTemplate}"
                     Style="{StaticResource TypicalButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,1,15" Width="80" Height="30" Content="Close"/>
             
-            <Button x:Name="okButton" Click="okButton_Click" ContentTemplate="{StaticResource ButtonContentTemplate}"
+            <Button x:Name="OkButton" Click="OkButton_Click" ContentTemplate="{StaticResource ButtonContentTemplate}"
                     Style="{StaticResource TypicalButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,81,15" Width="80" Height="30" Content="OK"/>
             
             <Label Name="tabLabel" Content="Tab:" HorizontalAlignment="Left" Margin="11,149,0,0" VerticalAlignment="Top"/>

@@ -49,7 +49,7 @@ namespace NoPlot
             DragMove();
         }
 
-        private void okButton_Click(object sender, RoutedEventArgs e)
+        private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             Properties.Settings.Default.NoPlotId = npTextBox.Text;
             Properties.Settings.Default.ServiceState = defaultOnCheckBox.IsChecked.Value;
@@ -77,7 +77,7 @@ namespace NoPlot
 
        
 
-        private void closeButton_Click(object sender, RoutedEventArgs e)
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
