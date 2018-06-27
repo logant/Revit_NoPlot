@@ -4,10 +4,12 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Media.Imaging;
 using System.Windows.Interop;
+using System.Xml;
 using Autodesk.Revit.DB.Events;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using RevitCommon.Attributes;
 
 
 namespace NoPlot
@@ -19,12 +21,22 @@ namespace NoPlot
         {
             try
             {
-                NoPlotSettingsForm form = new NoPlotSettingsForm();
-                System.Diagnostics.Process proc = System.Diagnostics.Process.GetCurrentProcess();
-                IntPtr handle = proc.MainWindowHandle;
+                // Get the version and set the handle var.
+                int.TryParse(commandData.Application.Application.VersionNumber, out int version);
+                IntPtr handle = IntPtr.Zero;
+                if (version < 2019)
+                    handle = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
+                else
+                    handle = commandData.Application.GetType().GetProperty("MainWindowHandle") != null
+                        ? (IntPtr)commandData.Application.GetType().GetProperty("MainWindowHandle").GetValue(commandData.Application)
+                        : IntPtr.Zero;
 
-                WindowInteropHelper wih = new WindowInteropHelper(form);
-                wih.Owner = handle;
+                // Set the handle to the window
+                NoPlotSettingsForm form = new NoPlotSettingsForm();
+                var wih = new WindowInteropHelper(form)
+                {
+                    Owner = handle
+                };
 
                 form.ShowDialog();
 
@@ -48,6 +60,9 @@ namespace NoPlot
         }
     }
 
+    [ExtApp(Name = "NoPlot", Description = "Adds No Plot functionality to Revit",
+        Guid = "79ca195f-118e-4916-9c39-9592f26add86", Vendor = "HKSL", VendorDescription = "HKS LINE, www.hksline.com",
+        ForceEnabled = false, Commands = new[] { "No Plot Toggle", "No Plot Settings" })]
     public class NoPlotApp : IExternalApplication
     {
         internal static NoPlotApp npApp = null;
@@ -91,7 +106,7 @@ namespace NoPlot
             {
                 bms = Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.NoPlotOn.GetHbitmap(), IntPtr.Zero, System.Windows.Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
 
-                npltPBD = new PushButtonData("No Plot", "No Plot", typeof(NoPlotApp).Assembly.Location, "NoPlot.NoPlotToggleCmd")
+                npltPBD = new PushButtonData("No Plot", "No Plot", typeof(NoPlotApp).Assembly.Location, typeof(NoPlotToggleCmd).FullName)
                 {
                     LargeImage = bms,
                     ToolTip = "No Plot functionality is currently on.  Push button to toggle the watcher off for this session."
@@ -101,42 +116,81 @@ namespace NoPlot
             {
                 bms = Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.NoPlotOff.GetHbitmap(), IntPtr.Zero, System.Windows.Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
 
-                npltPBD = new PushButtonData("No Plot", "No Plot", typeof(NoPlotApp).Assembly.Location, "NoPlot.NoPlotToggleCmd")
+                npltPBD = new PushButtonData("No Plot", "No Plot", typeof(NoPlotApp).Assembly.Location, typeof(NoPlotToggleCmd).FullName)
                 {
                     LargeImage = bms,
                     ToolTip = "No Plot functionality is currently off.  Push button to toggle the watcher on for this session."
                 };
             }
 
-            PushButtonData settingsPBD = new PushButtonData("Settings", "Settings", typeof(NoPlotApp).Assembly.Location, "NoPlot.SettingsCmd")
+            PushButtonData settingsPBD = new PushButtonData("Settings", "Settings", typeof(NoPlotApp).Assembly.Location, typeof(SettingsCmd).FullName)
             {
                 LargeImage = Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.NoPlotSettings.GetHbitmap(), IntPtr.Zero, System.Windows.Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions()),
                 ToolTip = "Settings for the No Plot command."
             };
 
-            // HKS Centric Stuff
+            // Check for a settings file
+            string helpPath = null;
+            string tabName = null;
+            string panelName = null;
+
+            if (!RevitCommon.Logging.GetPluginSettings(typeof(NoPlotApp).Assembly.GetName().Name, out helpPath, out tabName, out panelName))
+            {
+                // Set the help file path
+                System.IO.FileInfo fi = new System.IO.FileInfo(typeof(NoPlotApp).Assembly.Location);
+                System.IO.DirectoryInfo directory = fi.Directory;
+                helpPath = directory.FullName + "\\help\\NoPlot.pdf";
+
+                // Set the tab name
+                tabName = Properties.Settings.Default.TabName;
+                panelName = Properties.Settings.Default.PanelName;
+            }
+            else
+            {
+                // Check for nulls in the returned strings
+                if (helpPath == null)
+                {
+                    // Set the help file path
+                    System.IO.FileInfo fi = new System.IO.FileInfo(typeof(NoPlotApp).Assembly.Location);
+                    System.IO.DirectoryInfo directory = fi.Directory;
+                    helpPath = directory.FullName + "\\help\\NoPlot.pdf";
+                }
+
+                if (tabName == null)
+                    tabName = Properties.Settings.Default.TabName;
+
+                if (panelName == null)
+                    panelName = Properties.Settings.Default.PanelName;
+            }
+
+
+            // Help File
             // ******************************************
+            ContextualHelp help = null;
+            if (System.IO.File.Exists(helpPath))
+            {
+                help = new ContextualHelp(ContextualHelpType.ChmFile, helpPath);
+                npltPBD.SetContextualHelp(help);
 
-            // Set the help file
-            System.IO.FileInfo fi = new System.IO.FileInfo(typeof(NoPlotApp).Assembly.Location);
-            System.IO.DirectoryInfo directory = fi.Directory;
-
-            string helpPath = directory.FullName + "\\help\\NoPlot.pdf";
-            ContextualHelp help = new ContextualHelp(ContextualHelpType.ChmFile, helpPath);
-            npltPBD.SetContextualHelp(help);
-
-            string settingsHelpPath = directory.FullName + "\\help\\NoPlotSettings.pdf";
-            ContextualHelp settingsHelp = new ContextualHelp(ContextualHelpType.ChmFile, settingsHelpPath);
-            settingsPBD.SetContextualHelp(settingsHelp);
+                ContextualHelp settingsHelp = new ContextualHelp(ContextualHelpType.ChmFile, helpPath);
+                settingsPBD.SetContextualHelp(settingsHelp);
+            }
+            
 
             // ******************************************
-            // End of HKS Centric stuff
+            // End of Help File
 
             SplitButtonData sbd = new SplitButtonData("NoPlot", "No Plot");
-            sbd.SetContextualHelp(help);
-            SplitButton sb = RevitCommon.UI.AddToRibbon(application, Properties.Settings.Default.TabName, Properties.Settings.Default.PanelName, sbd);
-            sb.SetContextualHelp(help);
-            npButton = sb.AddPushButton(npltPBD) as PushButton;
+            if(help != null)
+                sbd.SetContextualHelp(help);
+            
+
+            // Create the button
+            SplitButton sb = RevitCommon.UI.AddToRibbon(application, tabName, panelName, sbd);
+            if(help != null)
+                sb.SetContextualHelp(help);
+
+            npButton = sb.AddPushButton(npltPBD);
             sb.AddPushButton(settingsPBD);
             sb.IsSynchronizedWithCurrentItem = false;
 
@@ -242,11 +296,13 @@ namespace NoPlot
                 {
 
 
-                    TaskDialog verifyDlg = new TaskDialog("Warning");
-                    verifyDlg.TitleAutoPrefix = false;
-                    verifyDlg.MainInstruction = "No Plot";
-                    verifyDlg.MainContent = "Do you want to turn off '" + npIdentifier + "' objects for this print?";
-                    verifyDlg.CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No;
+                    TaskDialog verifyDlg = new TaskDialog("Warning")
+                    {
+                        TitleAutoPrefix = false,
+                        MainInstruction = "No Plot is Active",
+                        MainContent = "Continue hiding objects with '" + npIdentifier + "' in their name for this print?",
+                        CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No
+                    };
 
                     TaskDialogResult verifyResult = verifyDlg.Show();
 
@@ -349,7 +405,8 @@ namespace NoPlot
                 string userName = doc.Application.Username;
                 string commandName = "No Plot";
                 string appVersion = doc.Application.VersionNumber;
-                RevitCommon.HKS.WriteToHome(commandName, appVersion, userName);
+
+                RevitCommon.Logging.WriteToHome(commandName, appVersion, userName);
             }
         }
 
@@ -368,8 +425,12 @@ namespace NoPlot
                 catVisMethod = viewType.GetMethod("GetVisibility");
 
             MethodInfo catHideMethod = null;
+            MethodInfo canHideMethod = null;
             if (revitVersion > 2017)
+            {
                 catHideMethod = viewType.GetMethod("SetCategoryHidden");
+                canHideMethod = viewType.GetMethod("CanCategoryBeHidden");
+            }
             else
                 catHideMethod = viewType.GetMethod("SetVisibility");
 
@@ -390,17 +451,21 @@ namespace NoPlot
 
                     if(revitVersion > 2017)
                     {
-                        object[] paramArr = new object[] { cat.Id };
-                        var result = catVisMethod.Invoke(view, paramArr);
-                        // A result of false means a category is not hidden, aka is visible.
-                        // If that is the case, we need to hide it
-                        if ((bool)result == false)
+                        // Check to see if the category can be hidden, ie if it exists or is otherwise not locked
+                        bool canHide = Convert.ToBoolean(canHideMethod.Invoke(view, new object[] { cat.Id }));
+                        if (canHide)
                         {
-                            hiddenSubCats.Add(cat);
-                            object[] setParamArr = new object[] { cat.Id, true };
-                            catHideMethod.Invoke(view, setParamArr);
+                            object[] paramArr = new object[] {cat.Id};
+                            var result = catVisMethod.Invoke(view, paramArr);
+                            // A result of false means a category is not hidden, aka is visible.
+                            // If that is the case, we need to hide it
+                            if ((bool) result == false)
+                            {
+                                hiddenSubCats.Add(cat);
+                                object[] setParamArr = new object[] {cat.Id, true};
+                                catHideMethod.Invoke(view, setParamArr);
+                            }
                         }
-                            
                     }
                     else // 2017 and earlier versions
                     {
@@ -423,11 +488,13 @@ namespace NoPlot
             view.HideElementsTemporary(npElementIds);
 
             // Store the information so that we can unhide it afterwards
-            NoPlotObj np = new NoPlotObj();
-            np.NPElements = npElementIds;
-            np.SubCategories = hiddenSubCats;
-            np.View = view.Id;
-            np.ViewTemplate = viewTemplateId;
+            NoPlotObj np = new NoPlotObj
+            {
+                NPElements = npElementIds,
+                SubCategories = hiddenSubCats,
+                View = view.Id,
+                ViewTemplate = viewTemplateId
+            };
             npElements.Add(np);
         }
 
@@ -441,10 +508,16 @@ namespace NoPlot
                     View v = doc.GetElement(np.View) as View;
                     Type viewType = v.GetType();
                     MethodInfo catHideMethod = null;
+                    MethodInfo canHideMethod = null;
                     if (revitVersion > 2017)
+                    {
                         catHideMethod = viewType.GetMethod("SetCategoryHidden");
+                        canHideMethod = viewType.GetMethod("CanCategoryBeHidden");
+                    }
                     else
+                    {
                         catHideMethod = viewType.GetMethod("SetVisibility");
+                    }
 
                     // Reset the temporary hide
                     v.DisableTemporaryViewMode(TemporaryViewMode.TemporaryHideIsolate);
@@ -459,23 +532,36 @@ namespace NoPlot
                     {
                         foreach (Category c in np.SubCategories)
                         {
-                            //<=2017 : Check if a category is visible
-                            //view.GetVisibility(cat);
-                            //view.SetVisibility(cat, bool visible);
+                            try
+                            {
+                                //<=2017 : Check if a category is visible
+                                //view.GetVisibility(cat);
+                                //view.SetVisibility(cat, bool visible);
 
-                            //2018   : Check if a category is hidden in the view.
-                            //view.GetCategoryHidden(cat.Id);
-                            //view.SetCategoryHidden(cat.Id, bool hide);
-                            if(revitVersion > 2017)
-                            {
-                                object[] setParamArr = new object[] { c.Id, false };
-                                catHideMethod.Invoke(v, setParamArr);
+                                //2018   : Check if a category is hidden in the view.
+                                //view.GetCategoryHidden(cat.Id);
+                                //view.SetCategoryHidden(cat.Id, bool hide);
+                                if (revitVersion > 2017)
+                                {
+                                    // Check to see if the category can be hidden, ie if it exists or is otherwise not locked
+                                    bool canHide = Convert.ToBoolean(canHideMethod.Invoke(v, new object[] {c.Id}));
+                                    if (canHide)
+                                    {
+                                        object[] setParamArr = new object[] {c.Id, false};
+                                        catHideMethod.Invoke(v, setParamArr);
+                                    }
+                                }
+                                else
+                                {
+                                    object[] setParamArr = new object[] { c, true };
+                                    catHideMethod.Invoke(v, setParamArr);
+                                }
                             }
-                            else
+                            catch (Exception e)
                             {
-                                object[] setParamArr = new object[] { c, true };
-                                catHideMethod.Invoke(v, setParamArr);
+                                TaskDialog.Show("Error", e.Message);
                             }
+                            
                         }
                     }
                 }

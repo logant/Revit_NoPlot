@@ -11,9 +11,6 @@ namespace NoPlot
     /// </summary>
     public partial class NoPlotSettingsForm : Window
     {
-        LinearGradientBrush brush = null;
-        SolidColorBrush defaultBrush = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
-
         public NoPlotSettingsForm()
         {
             InitializeComponent();
@@ -78,47 +75,14 @@ namespace NoPlot
             Close();
         }
 
-        private void okButton_MouseEnter(object sender, MouseEventArgs e)
-        {
-            if (brush == null)
-                brush = EnterBrush();
-
-            okRect.Fill = brush;
-        }
-
-        private void okButton_MouseLeave(object sender, MouseEventArgs e)
-        {
-            okRect.Fill = defaultBrush;
-        }
+       
 
         private void closeButton_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
 
-        private void closeButton_MouseEnter(object sender, MouseEventArgs e)
-        {
-            if (brush == null)
-                brush = EnterBrush();
-
-            closeRect.Fill = brush;
-        }
-
-        private void closeButton_MouseLeave(object sender, MouseEventArgs e)
-        {
-            closeRect.Fill = defaultBrush;
-        }
-
-        public LinearGradientBrush EnterBrush()
-        {
-            LinearGradientBrush b = new LinearGradientBrush();
-            b.StartPoint = new System.Windows.Point(0, 0);
-            b.EndPoint = new System.Windows.Point(0, 1);
-            b.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(255, 245, 245, 245), 0.0));
-            b.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(255, 195, 195, 195), 1.0));
-
-            return b;
-        }
+      
 
         private void Border_KeyDown(object sender, KeyEventArgs e)
         {
@@ -130,8 +94,7 @@ namespace NoPlot
                     System.Diagnostics.Process proc = System.Diagnostics.Process.GetCurrentProcess();
                     IntPtr handle = proc.MainWindowHandle;
                     RevitCommon.UILocation uiForm = new RevitCommon.UILocation("No Plot", Properties.Settings.Default.TabName, Properties.Settings.Default.PanelName);
-                    System.Windows.Interop.WindowInteropHelper wih = new System.Windows.Interop.WindowInteropHelper(uiForm);
-                    wih.Owner = handle;
+                    System.Windows.Interop.WindowInteropHelper wih = new System.Windows.Interop.WindowInteropHelper(uiForm) {Owner = handle};
                     uiForm.ShowDialog();
 
                     string tab = uiForm.Tab;

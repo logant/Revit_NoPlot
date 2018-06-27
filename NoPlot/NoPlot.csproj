@@ -62,8 +62,8 @@
       <HintPath>C:\Program Files\Autodesk\Revit 2016\RevitAPIUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="RevitCommon">
-      <HintPath>D:\Development\Git\Revit\RevitCommon\RevitCommon\bin\x64\Release\RevitCommon.dll</HintPath>
+    <Reference Include="RevitCommon, Version=1.2.1.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\RevitCommon.1.2.3\lib\net45\RevitCommon.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -98,6 +98,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="packages.config" />
+    <None Include="RevitCommon.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

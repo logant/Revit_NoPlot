@@ -13,53 +13,56 @@
              Height="225"
              DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Window.Resources>
-        <Style x:Key="typicalButtonStyle" TargetType="Button">
-            <Setter Property="Foreground" Value="#FF404040"/>
-            <Setter Property="FontSize" Value="14"/>
+        <Style x:Key="ButtonRectStyle" TargetType="Rectangle">
+            <Setter Property="Fill" Value="{DynamicResource DefaultBrush}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}" Value="True">
+                    <Setter Property="Fill" Value="{DynamicResource MouseOverBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Path=IsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}" Value="False">
+                    <Setter Property="Fill" Value="#FFE1E1E1"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="TypicalButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="#FF252525" />
+            <Setter Property="FontSize" Value="16"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Background" Value="#FF606060"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background">
-                        <Setter.Value>
-                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <GradientStop Color="#FF606060" Offset="1.0"/>
-                                <GradientStop Color="#FF8B8B8B" Offset="0.0"/>
-                            </LinearGradientBrush>
-                        </Setter.Value>
-                    </Setter>
-                    <Setter Property="BorderBrush">
-                        <Setter.Value>
-                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <GradientStop Color="#FF606060" Offset="1.0"/>
-                                <GradientStop Color="#FF8B8B8B" Offset="0.0"/>
-                            </LinearGradientBrush>
-                        </Setter.Value>
-                    </Setter>
-                </Trigger>
-            </Style.Triggers>
+            <Setter Property="Background" Value="#FFE8E8E8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter Margin="{TemplateBinding Control.Padding}"
+                                  HorizontalAlignment="{TemplateBinding Control.HorizontalContentAlignment}"
+                                  VerticalAlignment="{TemplateBinding Control.VerticalContentAlignment}"
+                                  SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}"
+                                  ContentTemplate="{TemplateBinding ContentControl.ContentTemplate}"
+                                  RecognizesAccessKey="True"
+                                  Content="{TemplateBinding ContentControl.Content}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
-        <Style x:Key="HilightRow" TargetType="{x:Type DataGridRow}">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Verified}" Value="Valid">
-                    <Setter Property="Background" Value="#FF26D826"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Verified}" Value="Invalid">
-                    <Setter Property="Background" Value="Red"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Verified}" Value="Unchecked">
-                    <Setter Property="Background" Value="White"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="InvalidRow" TargetType="{x:Type DataGridRow}">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Verification}" Value="Valid">
-                    <Setter Property="Background" Value="Red"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+        <DataTemplate x:Key="ButtonContentTemplate">
+            <Grid Width="{Binding Path=Width, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}"
+          Height="{Binding Path=Height, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
+                <Rectangle Style="{StaticResource ButtonRectStyle}"/>
+                <TextBlock Text="{Binding Path=Content, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}" TextAlignment="Center"/>
+            </Grid>
+        </DataTemplate>
+        <LinearGradientBrush x:Key="MouseOverBrush" StartPoint="0,0" EndPoint="0,1">
+            <LinearGradientBrush.GradientStops>
+                <GradientStop Color="#f5f5f5" Offset="0.0"/>
+                <GradientStop Color="#c3c3c3" Offset ="1.0"/>
+            </LinearGradientBrush.GradientStops>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="DefaultBrush" StartPoint="0,0" EndPoint="0,1">
+            <LinearGradientBrush.GradientStops>
+                <GradientStop Color="WhiteSmoke" Offset="0.0"/>
+                <GradientStop Color="#FFE1E1E1" Offset ="1.0"/>
+            </LinearGradientBrush.GradientStops>
+        </LinearGradientBrush>
     </Window.Resources>
     <Border MouseLeftButtonDown="Border_MouseLeftButtonDown" KeyDown="Border_KeyDown">
         <Grid>
@@ -77,46 +80,12 @@
             <CheckBox x:Name="defaultOnCheckBox" Content="No Plot Watcher On By Default" HorizontalAlignment="Left" Margin="16,85,0,0" VerticalAlignment="Top" FontFamily="Arial" FontSize="14" Foreground="#FF404040"/>
             <CheckBox x:Name="verifyCheckBox" Content="Prompt About No Plot Before Printing" HorizontalAlignment="Left" Margin="16,120,0,0" VerticalAlignment="Top" FontFamily="Arial" FontSize="14" Foreground="#FF404040"/>
 
-            <Button x:Name="closeButton" Click="closeButton_Click" MouseEnter="closeButton_MouseEnter" MouseLeave="closeButton_MouseLeave"
-                    Style="{StaticResource typicalButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,1,15" Width="80" Height="30">
-                <Button.Content>
-                    <Grid Width="80" Height="30">
-                        <Rectangle x:Name="closeRect" Fill="Transparent"/>
-                        <TextBlock Text="Close" TextAlignment="Center"/>
-                    </Grid>
-                </Button.Content>
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <ContentPresenter Margin="{TemplateBinding Control.Padding}"
-                                          HorizontalAlignment="{TemplateBinding Control.HorizontalContentAlignment}"
-                                          VerticalAlignment="{TemplateBinding Control.VerticalContentAlignment}"
-                                          SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}"
-                                          ContentTemplate="{TemplateBinding ContentControl.ContentTemplate}"
-                                          RecognizesAccessKey="True"
-                                          Content="{TemplateBinding ContentControl.Content}"/>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
-            <Button x:Name="okButton" Click="okButton_Click" MouseEnter="okButton_MouseEnter" MouseLeave="okButton_MouseLeave"
-                    Style="{StaticResource typicalButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,81,15" Width="80" Height="30">
-                <Button.Content>
-                    <Grid Width="80" Height="30">
-                        <Rectangle x:Name="okRect" Fill="Transparent"/>
-                        <TextBlock Text="OK" TextAlignment="Center"/>
-                    </Grid>
-                </Button.Content>
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <ContentPresenter Margin="{TemplateBinding Control.Padding}"
-                                          HorizontalAlignment="{TemplateBinding Control.HorizontalContentAlignment}"
-                                          VerticalAlignment="{TemplateBinding Control.VerticalContentAlignment}"
-                                          SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}"
-                                          ContentTemplate="{TemplateBinding ContentControl.ContentTemplate}"
-                                          RecognizesAccessKey="True"
-                                          Content="{TemplateBinding ContentControl.Content}"/>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
+            <Button x:Name="closeButton" Click="closeButton_Click" ContentTemplate="{StaticResource ButtonContentTemplate}"
+                    Style="{StaticResource TypicalButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,1,15" Width="80" Height="30" Content="Close"/>
+            
+            <Button x:Name="okButton" Click="okButton_Click" ContentTemplate="{StaticResource ButtonContentTemplate}"
+                    Style="{StaticResource TypicalButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,81,15" Width="80" Height="30" Content="OK"/>
+            
             <Label Name="tabLabel" Content="Tab:" HorizontalAlignment="Left" Margin="11,149,0,0" VerticalAlignment="Top"/>
             <TextBox x:Name="tabTextBox" HorizontalAlignment="Left" Width="80" Height="23" Margin="50,149,0,0" Text="" VerticalAlignment="Top" />
             <Label Name="panelLabel" Content="Panel:" HorizontalAlignment="Left" Margin="140,149,0,0" VerticalAlignment="Top"/>
