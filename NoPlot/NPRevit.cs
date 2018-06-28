@@ -290,13 +290,11 @@ namespace NoPlot
                 bool cont = true;
                 if(Properties.Settings.Default.AskBefore)
                 {
-
-
                     TaskDialog verifyDlg = new TaskDialog("Warning")
                     {
                         TitleAutoPrefix = false,
                         MainInstruction = "No Plot is Active",
-                        MainContent = "Continue hiding objects with '" + npIdentifier + "' in their name for this print?",
+                        MainContent = "Hide '" + npIdentifier + "' objects for this print?",
                         CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No
                     };
 
