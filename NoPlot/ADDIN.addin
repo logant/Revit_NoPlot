@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>No Plot</Name>
+    <Assembly>NoPlot.dll</Assembly>
+    <AddInId>79ca195f-118e-4916-9c39-9592f26add86</AddInId>
+    <FullClassName>NoPlot.NoPlotApp</FullClassName>
+    <VendorId>LMNA</VendorId>
+    <VendorDescription>LMN Architects - Tech Studio, www.lmnarchitects.com/tech-studio</VendorDescription>
+  </AddIn>
+</RevitAddIns>

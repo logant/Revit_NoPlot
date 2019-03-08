@@ -11,11 +11,5 @@
     <Setting Name="AskBefore" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="TabName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">Add-Ins</Value>
-    </Setting>
-    <Setting Name="PanelName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">No Plot</Value>
-    </Setting>
   </Settings>
 </SettingsFile>

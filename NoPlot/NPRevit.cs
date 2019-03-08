@@ -4,61 +4,14 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Media.Imaging;
 using System.Windows.Interop;
-using System.Xml;
 using Autodesk.Revit.DB.Events;
-using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using RevitCommon.Attributes;
-
+using System.IO;
 
 namespace NoPlot
 {
-    [Transaction(TransactionMode.Manual)]
-    public class SettingsCmd : IExternalCommand
-    {
-        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
-        {
-            try
-            {
-                // Get the version and set the handle var.
-                int.TryParse(commandData.Application.Application.VersionNumber, out int version);
-                IntPtr handle = IntPtr.Zero;
-                if (version < 2019)
-                    handle = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
-                else
-                    handle = commandData.Application.GetType().GetProperty("MainWindowHandle") != null
-                        ? (IntPtr)commandData.Application.GetType().GetProperty("MainWindowHandle").GetValue(commandData.Application)
-                        : IntPtr.Zero;
-
-                // Set the handle to the window
-                NoPlotSettingsForm form = new NoPlotSettingsForm();
-                var wih = new WindowInteropHelper(form)
-                {
-                    Owner = handle
-                };
-
-                form.ShowDialog();
-
-                return Result.Succeeded;
-            }
-            catch (Exception ex)
-            {
-                message = ex.Message;
-                return Result.Failed;
-            }
-        }
-    }
-
-    [Transaction(TransactionMode.Manual)]
-    public class NoPlotToggleCmd : IExternalCommand
-    {
-        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
-        {
-            NoPlotApp.Instance.ToggleState();
-            return Result.Succeeded;
-        }
-    }
 
     [ExtApp(Name = "NoPlot", Description = "Adds No Plot functionality to Revit",
         Guid = "79ca195f-118e-4916-9c39-9592f26add86", Vendor = "HKSL", VendorDescription = "HKS LINE, www.hksline.com",
@@ -129,52 +82,39 @@ namespace NoPlot
                 ToolTip = "Settings for the No Plot command."
             };
 
-            // Check for a settings file
-            if (!RevitCommon.FileUtils.GetPluginSettings(typeof(NoPlotApp).Assembly.GetName().Name, out string helpPath, out string tabName, out string panelName))
-            {
-                // Set the help file path
-                System.IO.FileInfo fi = new System.IO.FileInfo(typeof(NoPlotApp).Assembly.Location);
-                System.IO.DirectoryInfo directory = fi.Directory;
-                helpPath = directory.FullName + "\\help\\NoPlot.pdf";
 
-                // Set the tab name
-                tabName = Properties.Settings.Default.TabName;
-                panelName = Properties.Settings.Default.PanelName;
-            }
-            else
+            string helpPath = Path.Combine(Path.GetDirectoryName(typeof(NoPlotApp).Assembly.Location), "help", "NoPlot.pdf");
+            string tabName = "Add-Ins";
+            string panelName = "Tools";
+            if (RevitCommon.FileUtils.GetPluginSettings(typeof(NoPlotApp).Assembly.GetName().Name, out Dictionary<string, string> settings))
             {
-                // Check for nulls in the returned strings
-                if (helpPath == null)
+                // Settings retrieved, lets try to use them.
+                if (settings.ContainsKey("help-path") && !string.IsNullOrWhiteSpace(settings["help-path"]))
                 {
-                    // Set the help file path
-                    System.IO.FileInfo fi = new System.IO.FileInfo(typeof(NoPlotApp).Assembly.Location);
-                    System.IO.DirectoryInfo directory = fi.Directory;
-                    helpPath = directory.FullName + "\\help\\NoPlot.pdf";
+                    // Check to see if it's relative path
+                    string hp = Path.Combine(Path.GetDirectoryName(typeof(NoPlotApp).Assembly.Location), settings["help-path"]);
+                    if (File.Exists(hp))
+                        helpPath = hp;
+                    else
+                        helpPath = settings["help-path"];
                 }
-
-                if (tabName == null)
-                    tabName = Properties.Settings.Default.TabName;
-
-                if (panelName == null)
-                    panelName = Properties.Settings.Default.PanelName;
+                if (settings.ContainsKey("tab-name") && !string.IsNullOrWhiteSpace(settings["tab-name"]))
+                    tabName = settings["tab-name"];
+                if (settings.ContainsKey("panel-name") && !string.IsNullOrWhiteSpace(settings["panel-name"]))
+                    panelName = settings["panel-name"];
             }
 
-
-            // Help File
-            // ******************************************
+            // Set the help file
             ContextualHelp help = null;
-            if (System.IO.File.Exists(helpPath))
-            {
+            if (File.Exists(helpPath))
                 help = new ContextualHelp(ContextualHelpType.ChmFile, helpPath);
+            else if (Uri.TryCreate(helpPath, UriKind.Absolute, out Uri uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+                help = new ContextualHelp(ContextualHelpType.Url, helpPath);
+            if (help != null)
+            {
                 npltPBD.SetContextualHelp(help);
-
-                ContextualHelp settingsHelp = new ContextualHelp(ContextualHelpType.ChmFile, helpPath);
-                settingsPBD.SetContextualHelp(settingsHelp);
+                settingsPBD.SetContextualHelp(help);
             }
-            
-
-            // ******************************************
-            // End of Help File
 
             SplitButtonData sbd = new SplitButtonData("NoPlot", "No Plot");
             if(help != null)
@@ -367,13 +307,7 @@ namespace NoPlot
                                 View sheetView = doc.GetElement(viewId) as View;
                                 TemporaryHide(sheetView);
 
-                                List<View> sheetViews = new List<View>();
-                                foreach (ElementId vid in sheet.GetAllPlacedViews())
-                                {
-                                    sheetViews.Add(doc.GetElement(vid) as View);
-                                }
-
-                                foreach (View v in sheetViews) { TemporaryHide(v); }
+                                sheet.GetAllPlacedViews().ToList().ForEach(vid => TemporaryHide(doc.GetElement(vid) as View));
                             }
 
                             else  // The view is not a sheet but another view type
@@ -408,7 +342,8 @@ namespace NoPlot
         {
             // Get the view template and then turn it off so subcategories can be hidden
             ElementId viewTemplateId = view.ViewTemplateId;
-            view.ViewTemplateId = new ElementId(-1);
+            view.get_Parameter(BuiltInParameter.VIEW_TEMPLATE).Set(new ElementId(-1));
+            
 
             // API for a view's category visibility changes at Revit 2018, so reflection is used to find the right method call.
             Type viewType = view.GetType();
@@ -516,47 +451,44 @@ namespace NoPlot
                     // Reset the temporary hide
                     v.DisableTemporaryViewMode(TemporaryViewMode.TemporaryHideIsolate);
 
-                    // Assign the original view template
-                    if (np.ViewTemplate.IntegerValue != -1)
+                    foreach (Category c in np.SubCategories)
                     {
-                        v.ViewTemplateId = np.ViewTemplate;
-                    }
-                    // Reset each subcategory manually
-                    else
-                    {
-                        foreach (Category c in np.SubCategories)
+                        try
                         {
-                            try
-                            {
-                                //<=2017 : Check if a category is visible
-                                //view.GetVisibility(cat);
-                                //view.SetVisibility(cat, bool visible);
+                            //<=2017 : Check if a category is visible
+                            //view.GetVisibility(cat);
+                            //view.SetVisibility(cat, bool visible);
 
-                                //2018   : Check if a category is hidden in the view.
-                                //view.GetCategoryHidden(cat.Id);
-                                //view.SetCategoryHidden(cat.Id, bool hide);
-                                if (revitVersion > 2017)
+                            //2018   : Check if a category is hidden in the view.
+                            //view.GetCategoryHidden(cat.Id);
+                            //view.SetCategoryHidden(cat.Id, bool hide);
+                            if (revitVersion > 2017)
+                            {
+                                // Check to see if the category can be hidden, ie if it exists or is otherwise not locked
+                                bool canHide = Convert.ToBoolean(canHideMethod.Invoke(v, new object[] {c.Id}));
+                                if (canHide)
                                 {
-                                    // Check to see if the category can be hidden, ie if it exists or is otherwise not locked
-                                    bool canHide = Convert.ToBoolean(canHideMethod.Invoke(v, new object[] {c.Id}));
-                                    if (canHide)
-                                    {
-                                        object[] setParamArr = new object[] {c.Id, false};
-                                        catHideMethod.Invoke(v, setParamArr);
-                                    }
-                                }
-                                else
-                                {
-                                    object[] setParamArr = new object[] { c, true };
+                                    object[] setParamArr = new object[] {c.Id, false};
                                     catHideMethod.Invoke(v, setParamArr);
                                 }
                             }
-                            catch (Exception e)
+                            else
                             {
-                                TaskDialog.Show("Error", e.Message);
+                                object[] setParamArr = new object[] { c, true };
+                                catHideMethod.Invoke(v, setParamArr);
                             }
-                            
                         }
+                        catch (Exception e)
+                        {
+                            TaskDialog.Show("Error", e.Message);
+                        }
+                            
+                    }
+                    
+                    // Assign the original view template
+                    if (np.ViewTemplate.IntegerValue != -1)
+                    {
+                        v.get_Parameter(BuiltInParameter.VIEW_TEMPLATE).Set(np.ViewTemplate);
                     }
                 }
                 resetTrans.Commit();

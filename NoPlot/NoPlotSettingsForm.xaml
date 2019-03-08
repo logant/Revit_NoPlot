@@ -10,7 +10,7 @@
              WindowStartupLocation="CenterOwner"
              ResizeMode="NoResize"
              Width="300"
-             Height="225"
+             Height="200"
              DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Window.Resources>
         <Style x:Key="ButtonRectStyle" TargetType="Rectangle">
@@ -64,7 +64,7 @@
             </LinearGradientBrush.GradientStops>
         </LinearGradientBrush>
     </Window.Resources>
-    <Border MouseLeftButtonDown="Border_MouseLeftButtonDown" KeyDown="Border_KeyDown">
+    <Border MouseLeftButtonDown="Border_MouseLeftButtonDown"> <!--KeyDown="Border_KeyDown">-->
         <Grid>
             <!--Main Background-->
             <Rectangle Fill="WhiteSmoke" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"/>
@@ -86,10 +86,12 @@
             <Button x:Name="OkButton" Click="OkButton_Click" ContentTemplate="{StaticResource ButtonContentTemplate}"
                     Style="{StaticResource TypicalButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,81,15" Width="80" Height="30" Content="OK"/>
             
+            <!--
             <Label Name="tabLabel" Content="Tab:" HorizontalAlignment="Left" Margin="11,149,0,0" VerticalAlignment="Top"/>
             <TextBox x:Name="tabTextBox" HorizontalAlignment="Left" Width="80" Height="23" Margin="50,149,0,0" Text="" VerticalAlignment="Top" />
             <Label Name="panelLabel" Content="Panel:" HorizontalAlignment="Left" Margin="140,149,0,0" VerticalAlignment="Top"/>
             <TextBox x:Name="panelTextBox" HorizontalAlignment="Left" Width="80" Height="23" Margin="190,149,16,0" Text="" VerticalAlignment="Top" />
+            -->
         </Grid>
     </Border>
 </Window>
