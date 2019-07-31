@@ -1,6 +1,6 @@
 # Revit No Plot
 
-##Description
+## Description
 A plugin for Revit that adds no plot functionality to the print method. It can turn off subcategories with a specified identifier (default is "NPLT") or hide individual elements in the views being printed that have the identifier in the type name.
 
 ## Dependencies
