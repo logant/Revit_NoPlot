@@ -13,6 +13,16 @@
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('2020'))">
+    <RevitPath>C:\Program Files\Autodesk\Revit 2020\</RevitPath>
+    <RevitCommonPath>..\packages\RevitCommon.1.9.0.2\lib\net47\RevitCommon.dll</RevitCommonPath>
+    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('2022'))">
+    <RevitPath>C:\Program Files\Autodesk\Revit 2023\</RevitPath>
+    <RevitCommonVersion>..\packages\RevitCommon.2.1.0\lib\net48\RevitCommon.dll</RevitCommonVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -48,19 +58,92 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug_2020|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug_2020\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug_2020|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug_2020\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug_2022|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug_2022\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;REVIT2022</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug_2022|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug_2022\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;REVIT2022</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_2020|AnyCPU'">
+    <OutputPath>bin\Release_2020\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_2020|x64'">
+    <OutputPath>bin\x64\Release_2020\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_2022|AnyCPU'">
+    <OutputPath>bin\Release_2022\</OutputPath>
+    <DefineConstants>TRACE;REVIT2022</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_2022|x64'">
+    <OutputPath>bin\x64\Release_2022\</OutputPath>
+    <DefineConstants>TRACE;REVIT2022</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="RevitAPI">
-      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2020\RevitAPI.dll</HintPath>
+      <HintPath>$(RevitPath)RevitAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RevitAPIUI">
-      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2020\RevitAPIUI.dll</HintPath>
+      <HintPath>$(RevitPath)RevitAPIUI.dll</HintPath>
       <Private>False</Private>
-    </Reference>
-    <Reference Include="RevitCommon, Version=1.4.0.2, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\RevitCommon.1.4.0.2\lib\net47\RevitCommon.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -74,6 +157,12 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup Condition="$(DefineConstants.Contains('2020'))">
+    <PackageReference Include="RevitCommon" Version="1.9.0.2" Condition="'$(TargetFramework)' == 'net47'" />
+  </ItemGroup>
+  <ItemGroup Condition="$(DefineConstants.Contains('2022'))">
+    <PackageReference Include="RevitCommon" Version="2.1.0" Condition="'$(TargetFramework)' == 'net48'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="NoPlotSettingsForm.xaml.cs">
@@ -132,7 +221,31 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(ProjectDir)ADDIN.addin" "$(TargetDir)$(TargetName).addin"
-call "$(SolutionDir)Secrets\SignBuild.bat" "$(TargetPath)"</PostBuildEvent>
+
+%25HKSSignToolpath%25 sign /f "%25HKSCertPath%25" /p %25HKSCertPW%25 /t http://timestamp.digicert.com/ /v "$(TargetPath)"
+
+if $(ConfigurationName) == Debug_2020 (
+copy /Y "$(TargetPath)" "%25ProgramData%25\Autodesk\Revit\Addins\2021\HKS\$(TargetFileName)"
+copy /Y "$(TargetDir)RevitCommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2021\HKS\RevitCommon.dll"
+)
+if $(ConfigurationName) == Debug_2022 (
+copy /Y "$(TargetPath)" "%25ProgramData%25\Autodesk\Revit\Addins\2023\HKS\$(TargetFileName)"
+copy /Y "$(TargetDir)RevitCommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2023\HKS\RevitCommon.dll"
+)
+
+if $(ConfigurationName) == Release_2020 (
+ copy /Y "$(TargetPath)" "%25HKSRevitPublish%25\2020\Components\$(TargetFileName)"
+ copy /Y "$(TargetDir)RevitCommon.dll" "%25HKSRevitPublish%25\2020\Components\RevitCommon.dll"
+ copy /Y "$(TargetPath)" "%25HKSRevitPublish%25\2021\Components\$(TargetFileName)"
+ copy /Y "$(TargetDir)RevitCommon.dll" "%25HKSRevitPublish%25\2021\Components\RevitCommon.dll"
+)
+if $(ConfigurationName) == Release_2022 (
+ copy /Y "$(TargetPath)" "%25HKSRevitPublish%25\2022\Components\$(TargetFileName)"
+ copy /Y "$(TargetDir)RevitCommon.dll" "%25HKSRevitPublish%25\2022\Components\RevitCommon.dll"
+ copy /Y "$(TargetPath)" "%25HKSRevitPublish%25\2023\Components\$(TargetFileName)"
+ copy /Y "$(TargetDir)RevitCommon.dll" "%25HKSRevitPublish%25\2023\Components\RevitCommon.dll"
+)
+</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
