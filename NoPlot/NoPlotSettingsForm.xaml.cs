@@ -2,6 +2,8 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using Autodesk.Revit.DB.Architecture;
+
 
 
 namespace NoPlot
@@ -14,10 +16,11 @@ namespace NoPlot
         public NoPlotSettingsForm()
         {
             InitializeComponent();
+            NoPlotApp.Instance.CheckSettings();
 
-            npTextBox.Text = Properties.Settings.Default.NoPlotId;
-            defaultOnCheckBox.IsChecked = Properties.Settings.Default.ServiceState;
-            verifyCheckBox.IsChecked = Properties.Settings.Default.AskBefore;
+            npTextBox.Text = NoPlotApp.Instance.NpId;
+            defaultOnCheckBox.IsChecked = NoPlotApp.Instance.DefaultState;
+            verifyCheckBox.IsChecked = NoPlotApp.Instance.Inquire;
         }
 
         private void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -27,10 +30,16 @@ namespace NoPlot
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.NoPlotId = npTextBox.Text;
-            Properties.Settings.Default.ServiceState = defaultOnCheckBox.IsChecked.Value;
-            Properties.Settings.Default.AskBefore = verifyCheckBox.IsChecked.Value;
-            Properties.Settings.Default.Save();
+#if REVIT2022
+            string path = RevitCommon.Interface.Windows.SettingsPath;
+#else
+            string path = System.IO.Path.Combine(Environment.ExpandEnvironmentVariables("%onedrive%"), "hks-revit.settings");
+#endif
+            string name = this.GetType().Assembly.GetName().Name;
+            RevitCommon.FileUtils.SetString(path, name, "NoPlotId",
+                NoPlotApp.Instance.NpId);
+            RevitCommon.FileUtils.SetInt(path, name, "ServiceState", NoPlotApp.Instance.ServiceOn ? 1 : 0);
+            RevitCommon.FileUtils.SetInt(path, name, "AskBefore", NoPlotApp.Instance.Inquire ? 1 : 0);
             Close();
         }
 
