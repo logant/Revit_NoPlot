@@ -30,6 +30,7 @@ namespace NoPlot
         RibbonItem npButton;
         List<Category> npSubCats;
         private List<ElementId> _viewIds = new List<ElementId>();
+        private Settings _settings;
 
         int revitVersion = 2017;
 
@@ -49,6 +50,12 @@ namespace NoPlot
         public Result OnShutdown(UIControlledApplication application)
         {
             // Close the event handlers
+            application.ControlledApplication.DocumentPrinting -= Printing;
+            application.ControlledApplication.DocumentPrinted -= Printed;
+#if REVIT2022
+            application.ControlledApplication.FileExporting -= Exporting;
+            application.ControlledApplication.FileExported -= Exported;
+#endif
 
             return Result.Succeeded;
         }
@@ -57,7 +64,7 @@ namespace NoPlot
         {
             try
             {
-
+                _settings = new Settings();
 
                 npApp = this;
                 revitVersion = Convert.ToInt32(application.ControlledApplication.VersionNumber);

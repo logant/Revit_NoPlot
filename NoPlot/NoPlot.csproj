@@ -159,7 +159,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('2020'))">
-    <PackageReference Include="RevitCommon" Version="1.9.0.2" Condition="'$(TargetFramework)' == 'net47'" />
+    <PackageReference Include="RevitCommon" Version="2.1.2" Condition="'$(TargetFramework)' == 'net47'" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('2022'))">
     <PackageReference Include="RevitCommon" Version="2.1.0" Condition="'$(TargetFramework)' == 'net48'" />
@@ -171,6 +171,7 @@
     <Compile Include="NoPlotToggleCmd.cs" />
     <Compile Include="NPObjects.cs" />
     <Compile Include="NPRevit.cs" />
+    <Compile Include="NPSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -182,7 +183,11 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="RevitControl.cs" />
     <Compile Include="SettingsCmd.cs" />
+    <Compile Include="SettingsWindow.xaml.cs">
+      <DependentUpon>SettingsWindow.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ADDIN.addin" />
@@ -213,10 +218,27 @@
     <EmbeddedResource Include="images\NoPlotOn.png" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="LocalResource.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="LocalResources.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="NoPlotSettingsForm.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="SettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="LINECommon">
+      <Version>1.0.8.4</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
@@ -227,10 +249,12 @@
 if $(ConfigurationName) == Debug_2020 (
 copy /Y "$(TargetPath)" "%25ProgramData%25\Autodesk\Revit\Addins\2021\HKS\$(TargetFileName)"
 copy /Y "$(TargetDir)RevitCommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2021\HKS\RevitCommon.dll"
+copy /Y "$(TargetDir)LINECommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2021\HKS\LINECommon.dll"
 )
 if $(ConfigurationName) == Debug_2022 (
 copy /Y "$(TargetPath)" "%25ProgramData%25\Autodesk\Revit\Addins\2023\HKS\$(TargetFileName)"
 copy /Y "$(TargetDir)RevitCommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2023\HKS\RevitCommon.dll"
+copy /Y "$(TargetDir)LINECommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2023\HKS\LINECommon.dll"
 )
 
 if $(ConfigurationName) == Release_2020 (
