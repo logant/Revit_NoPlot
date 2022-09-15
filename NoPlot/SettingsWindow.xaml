@@ -36,19 +36,20 @@
             </StackPanel>
             
             <Label Content="Enabled:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,105,0,0" />
-            <CheckBox Name="DefaultStateCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="35,130,0,0" Content="No Plot Active by Default" />
+            <CheckBox Name="DefaultStateCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="35,130,0,0" Content="No Plot Active by Default At Startup" />
             <CheckBox Name="PromptCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="35,155,0,0" Content="Prompt Before Printing/Exporting" />
 
-            <Label Content="Search Term(s):" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="325,150,0,0" />
-            <TextBox Name="SearchTextBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="425,150,0,0" Width="170" Height="100" 
+            <Label Content="Search Term(s):" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="325,160,0,0" />
+            <TextBox Name="SearchTextBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="425,160,0,0" Width="170" Height="100" 
                      AcceptsReturn="True" TextWrapping="Wrap" LostFocus="SearchTextBox_LostFocus"/>
-            <CheckBox Name="CaseCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="425,255,0,0" Content="Case Sensitive Search Terms"/>
+            <CheckBox Name="CaseCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="425,265,0,0" Content="Case Sensitive Search Terms"/>
             
             <Label Content="Search Space:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="325,10,0,0" />
             <CheckBox Name="CategoryNamesCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="350,35,0,0" Content="Category Names"/>
             <CheckBox Name="SubcategoryNamesCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="350,60,0,0" Content="Subcategory Names"  />
             <CheckBox Name="FamilyNamesCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="350,85,0,0" Content="Family Names" />
             <CheckBox Name="TypeNamesCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="350,110,0,0" Content="Type Names" />
+            <CheckBox Name="GroupNamesCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="350,135,0,0" Content="Group Names" />
 
             <Label Content="Events:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="550,10,0,0"/>
             <CheckBox Name="PrintCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="575,35,0,0" Content="Printing" />

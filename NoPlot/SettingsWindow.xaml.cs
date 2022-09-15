@@ -57,6 +57,7 @@ namespace NoPlot
             SubcategoryNamesCheckbox.IsChecked = _settings.SearchSubcatNames;
             FamilyNamesCheckbox.IsChecked = _settings.SearchFamNames;
             TypeNamesCheckbox.IsChecked = _settings.SearchTypeNames;
+            GroupNamesCheckbox.IsChecked = _settings.SearchGroupNames;
 
             PrintCheckbox.IsChecked = _settings.WhenPrinting;
             ExportPDFCheckbox.IsChecked = _settings.WhenExportPdf;
@@ -114,6 +115,7 @@ namespace NoPlot
             _settings.SearchSubcatNames = SubcategoryNamesCheckbox.IsChecked.Value;
             _settings.SearchFamNames = FamilyNamesCheckbox.IsChecked.Value;
             _settings.SearchTypeNames = TypeNamesCheckbox.IsChecked.Value;
+            _settings.SearchGroupNames = GroupNamesCheckbox.IsChecked.Value;
 
             _settings.WhenPrinting = PrintCheckbox.IsChecked.Value;
             _settings.WhenExportPdf = ExportPDFCheckbox.IsChecked.Value;
