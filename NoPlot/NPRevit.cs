@@ -148,7 +148,7 @@ namespace NoPlot
 
                 // Create the button
 
-                SplitButton sb = RevitCommon.UI.AddToRibbon(application, tabName, panelName, sbd);
+                SplitButton sb = RevitCommon.Interface.Revit.AddToRibbon(application, tabName, panelName, sbd);
 
                 if (help != null)
                     sb.SetContextualHelp(help);

@@ -176,7 +176,11 @@ namespace NoPlot
             List<ElementFilter> filters = new List<ElementFilter>();
             foreach (string st in settings.SearchTerms)
             {
+#if REVIT2022
                 FilterRule rule = new FilterStringRule(provider, new FilterStringContains(), st);
+#else
+                FilterRule rule = new FilterStringRule(provider, new FilterStringContains(), st, settings.CaseSensitive);
+#endif
                 filters.Add(new ElementParameterFilter(rule));
             }
             LogicalOrFilter filter = new LogicalOrFilter(filters);
@@ -230,13 +234,21 @@ namespace NoPlot
             {
                 if (settings.SearchFamNames)
                 {
+#if REVIT2022
                     var fRule = new FilterStringRule(fProvider, new FilterStringContains(), st);
+#else
+                    var fRule = new FilterStringRule(fProvider, new FilterStringContains(), st, settings.CaseSensitive);
+#endif
                     famFilters.Add(new ElementParameterFilter(fRule));
                 }
 
                 if (settings.SearchTypeNames)
                 {
+#if REVIT2022
                     var tRule = new FilterStringRule(tProvider, new FilterStringContains(), st);
+#else
+                    var tRule = new FilterStringRule(tProvider, new FilterStringContains(), st, settings.CaseSensitive);
+#endif
                     typFilters.Add(new ElementParameterFilter(tRule));
                 }
             }

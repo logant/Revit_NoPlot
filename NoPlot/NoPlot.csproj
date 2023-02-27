@@ -16,7 +16,7 @@
   <PropertyGroup Condition="$(Configuration.Contains('2020'))">
     <RevitPath>C:\Program Files\Autodesk\Revit 2020\</RevitPath>
     <RevitCommonPath>..\packages\RevitCommon.1.9.0.2\lib\net47\RevitCommon.dll</RevitCommonPath>
-    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition="$(Configuration.Contains('2022'))">
     <RevitPath>C:\Program Files\Autodesk\Revit 2023\</RevitPath>
@@ -134,6 +134,9 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -158,16 +161,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains('2020'))">
-    <PackageReference Include="RevitCommon" Version="2.1.2" Condition="'$(TargetFramework)' == 'net47'" />
-  </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains('2022'))">
-    <PackageReference Include="RevitCommon" Version="2.1.0" Condition="'$(TargetFramework)' == 'net48'" />
-  </ItemGroup>
   <ItemGroup>
-    <Compile Include="NoPlotSettingsForm.xaml.cs">
-      <DependentUpon>NoPlotSettingsForm.xaml</DependentUpon>
-    </Compile>
     <Compile Include="NoPlotToggleCmd.cs" />
     <Compile Include="NPObjects.cs" />
     <Compile Include="NPRevit.cs" />
@@ -226,10 +220,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="NoPlotSettingsForm.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="SettingsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -237,7 +227,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="LINECommon">
-      <Version>1.0.8.4</Version>
+      <Version>1.0.11</Version>
+    </PackageReference>
+    <PackageReference Include="RevitCommon">
+      <Version>2.1.2</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -248,28 +241,33 @@
 
 if $(ConfigurationName) == Debug_2020 (
 copy /Y "$(TargetPath)" "%25ProgramData%25\Autodesk\Revit\Addins\2021\HKS\$(TargetFileName)"
-copy /Y "$(TargetDir)RevitCommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2021\HKS\RevitCommon.dll"
-copy /Y "$(TargetDir)LINECommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2021\HKS\LINECommon.dll"
+echo F|xcopy /Y /D "$(TargetDir)RevitCommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2021\HKS\RevitCommon.dll"
+echo F|xcopy /Y /D "$(TargetDir)LINECommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2021\HKS\LINECommon.dll"
 )
+
 if $(ConfigurationName) == Debug_2022 (
 copy /Y "$(TargetPath)" "%25ProgramData%25\Autodesk\Revit\Addins\2023\HKS\$(TargetFileName)"
-copy /Y "$(TargetDir)RevitCommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2023\HKS\RevitCommon.dll"
-copy /Y "$(TargetDir)LINECommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2023\HKS\LINECommon.dll"
+echo F|xcopy /Y /D "$(TargetDir)RevitCommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2023\HKS\RevitCommon.dll"
+echo F|xcopy /Y /D "$(TargetDir)LINECommon.dll" "%25ProgramData%25\Autodesk\Revit\Addins\2023\HKS\LINECommon.dll"
 )
 
 if $(ConfigurationName) == Release_2020 (
  copy /Y "$(TargetPath)" "%25HKSRevitPublish%25\2020\Components\$(TargetFileName)"
- copy /Y "$(TargetDir)RevitCommon.dll" "%25HKSRevitPublish%25\2020\Components\RevitCommon.dll"
+ echo F|xcopy /Y /D "$(TargetDir)RevitCommon.dll" "%25HKSRevitPublish%25\2020\Components\RevitCommon.dll"
+ echo F|xcopy /Y /D "$(TargetDir)LINECommon.dll" "%25HKSRevitPublish%25\2020\Components\LINECommon.dll"
  copy /Y "$(TargetPath)" "%25HKSRevitPublish%25\2021\Components\$(TargetFileName)"
- copy /Y "$(TargetDir)RevitCommon.dll" "%25HKSRevitPublish%25\2021\Components\RevitCommon.dll"
+ echo F|xcopy /Y /D "$(TargetDir)RevitCommon.dll" "%25HKSRevitPublish%25\2021\Components\RevitCommon.dll"
+ echo F|xcopy /Y /D "$(TargetDir)LINECommon.dll" "%25HKSRevitPublish%25\2021\Components\LINECommon.dll"
 )
+
 if $(ConfigurationName) == Release_2022 (
  copy /Y "$(TargetPath)" "%25HKSRevitPublish%25\2022\Components\$(TargetFileName)"
- copy /Y "$(TargetDir)RevitCommon.dll" "%25HKSRevitPublish%25\2022\Components\RevitCommon.dll"
+ echo F|xcopy /Y /D "$(TargetDir)RevitCommon.dll" "%25HKSRevitPublish%25\2022\Components\RevitCommon.dll"
+ echo F|xcopy /Y /D "$(TargetDir)LINECommon.dll" "%25HKSRevitPublish%25\2022\Components\LINECommon.dll"
  copy /Y "$(TargetPath)" "%25HKSRevitPublish%25\2023\Components\$(TargetFileName)"
- copy /Y "$(TargetDir)RevitCommon.dll" "%25HKSRevitPublish%25\2023\Components\RevitCommon.dll"
-)
-</PostBuildEvent>
+ echo F|xcopy /Y /D "$(TargetDir)RevitCommon.dll" "%25HKSRevitPublish%25\2023\Components\RevitCommon.dll"
+ echo F|xcopy /Y /D "$(TargetDir)LINECommon.dll" "%25HKSRevitPublish%25\2023\Components\LINECommon.dll"
+)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
