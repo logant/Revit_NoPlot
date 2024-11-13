@@ -10,5 +10,6 @@ namespace NoPlot
         public List<Category> SubCategories { get; set; }
         public ElementId ViewTemplate { get; set; }
         public bool TempEnabled { get; set; }
+        
     }
 }

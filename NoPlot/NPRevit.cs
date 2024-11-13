@@ -308,8 +308,8 @@ namespace NoPlot
             CheckSettings();
 
             // Run NoPlot for exports
-            if (IsActive && (_settings.WhenExportDwf && (e.Format == ImportExportFileFormat.DWF || e.Format == ImportExportFileFormat.DWFX))
-                || (_settings.WhenExportPdf && e.Format == ImportExportFileFormat.PDF))
+            if (IsActive && ((_settings.WhenExportDwf && (e.Format == ImportExportFileFormat.DWF || e.Format == ImportExportFileFormat.DWFX))
+                || (_settings.WhenExportPdf && e.Format == ImportExportFileFormat.PDF)))
             {
                 doc = e.Document;
                 PrintManager pm = doc.PrintManager;

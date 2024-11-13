@@ -133,10 +133,16 @@ namespace NoPlot
                 foreach (var obj in objs)
                 {
                     View v = doc.GetElement(obj.View) as View;
+                    bool isPersp = false;
+                    if(v.ViewType == ViewType.ThreeD)
+                    {
+                        View3D v3d = v as View3D;
+                        isPersp = v3d.IsPerspective;
+                    }
                     try
                     {
                         
-                        if (!obj.TempEnabled && v.ViewType != ViewType.DrawingSheet && v.CanEnableTemporaryViewPropertiesMode())
+                        if (!obj.TempEnabled && v.ViewType != ViewType.DrawingSheet && v.CanEnableTemporaryViewPropertiesMode() && !isPersp)
                             v.EnableTemporaryViewPropertiesMode(v.Id);
                         foreach (Category c in obj.SubCategories)
                         {
