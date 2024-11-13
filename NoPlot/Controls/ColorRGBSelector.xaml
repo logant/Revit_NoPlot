@@ -1,0 +1,110 @@
+﻿<UserControl x:Class="LINECommon.Windows.Controls.ColorRGBSelector"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:LINECommon.Windows.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="400" d:DesignWidth="290" Width="290" Height="400">
+    <UserControl.Resources>
+
+
+        <Style x:Key="PlaneThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="SnapsToDevicePixels" Value="true" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="Height" Value="283" />
+            <Setter Property="Width" Value="283" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Grid Margin="0,0,0,0">
+                            <Grid.LayoutTransform>
+                                <RotateTransform Angle="45"></RotateTransform>
+                            </Grid.LayoutTransform>
+                            <Rectangle x:Name="BaseGradientRect" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=BaseBrush}">
+
+                            </Rectangle>
+                            <Rectangle x:Name="MiddleGradientRect" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=MiddleBrush}">
+
+                            </Rectangle>
+                            <Rectangle x:Name="TopGradientRect" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=TopBrush, Mode=OneWay}">
+                            </Rectangle>
+                        </Grid>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <ControlTemplate x:Key="PlaneSliderTemplate" TargetType="{x:Type Slider}">
+            <Grid>
+                <TickBar x:Name="TopTick" SnapsToDevicePixels="True" Placement="Top" Height="4" Visibility="Collapsed"/>
+
+                <Border x:Name="TrackBackground" Margin="0" CornerRadius="2" Height="4" Grid.Row="1" BorderThickness="1">
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="Transparent"/>
+                    </Border.BorderBrush>
+
+                </Border>
+                <Track Grid.Row="1" x:Name="PART_Track">
+                    <Track.Thumb>
+                        <Thumb Style="{StaticResource PlaneThumbStyle}" />
+                    </Track.Thumb>
+                </Track>
+                <TickBar x:Name="BottomTick" SnapsToDevicePixels="True" Grid.Row="2" Fill="{TemplateBinding Foreground}"
+                     Placement="Bottom" Height="4" Visibility="Collapsed" />
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="TickPlacement" Value="TopLeft">
+                    <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
+                </Trigger>
+                <Trigger Property="TickPlacement" Value="BottomRight">
+                    <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                </Trigger>
+                <Trigger Property="TickPlacement" Value="Both">
+                    <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+        <ResourceDictionary x:Key="CommonResources" Source="../Styles/Brushes.xaml"/>
+    </UserControl.Resources>
+    <Grid>
+        <Rectangle Fill="{DynamicResource BackgroundPrimaryBrush}"/>
+
+        <!--Inner Bottom-->
+        <Line X1="10" Y1="281" X2="81" Y2="210" StrokeThickness="2" Stroke="{DynamicResource ForegroundSecondaryBrush}" StrokeDashArray="0.5 1"/>
+        <Line X1="81" Y1="210" X2="81" Y2="10" StrokeThickness="2" Stroke="{DynamicResource ForegroundSecondaryBrush}" StrokeDashArray="0.5 1"/>
+        <Line X1="81" Y1="210" X2="281" Y2="210" StrokeThickness="2" Stroke="{DynamicResource ForegroundSecondaryBrush}" StrokeDashArray="0.5 1"/>
+
+        <!-- Color Plane Slider --> 
+        <Slider Name="BlueSlider" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-96,-96,0,0" Maximum="1.0" Minimum="0.0" Value="0.5"
+                Width="383" Height="300" Template="{StaticResource PlaneSliderTemplate}" ValueChanged="BlueSlider_OnValueChanged">
+            <Slider.LayoutTransform>
+                <RotateTransform Angle="-45"/>
+            </Slider.LayoutTransform>
+        </Slider>
+
+        <!--Inner Top-->
+        <Line X1="10" Y1="81" X2="210" Y2="81" StrokeThickness="1" Stroke="{DynamicResource ForegroundSecondaryBrush}"/>
+        <Line X1="210" Y1="81" X2="281" Y2="10" StrokeThickness="1" Stroke="{DynamicResource ForegroundSecondaryBrush}"/>
+        <Line X1="210" Y1="81" X2="210" Y2="281" StrokeThickness="1" Stroke="{DynamicResource ForegroundSecondaryBrush}"/>
+
+        <!--Silhouette Border-->
+        <Path Data="M 10,281 L 10,81 L 81,10 L 281,10 L 281,210 L 210,281 L 10,281 Z"  StrokeThickness="2" Stroke="{DynamicResource ForegroundPrimaryBrush}"/>
+
+        <!-- Red/Green Planar Node -->
+        <Canvas x:Name="RedGreenGrid" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0, 71,0,0" Width="220" Height="220">
+            <local:ColorNode x:Name="CNode" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,0" Width="20" Height="20" 
+                             MouseLeftButtonDown="UIElement_OnMouseLeftButtonDown" MouseMove="CNode_OnMouseMove" MouseLeftButtonUp="CNode_OnMouseLeftButtonUp"/>
+        </Canvas>
+
+        <local:ColorComponentSlider x:Name="RedCompSlider" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="10,0,10,85" SliderValueChanged="Slider_OnSliderValueChanged"
+                                    SliderDoubleClicked="Slider_OnSliderDoubleClicked" TextInputComplete="Slider_OnTextInputComplete"/>
+        <local:ColorComponentSlider x:Name="GreenCompSlider" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="10,0,10,60" SliderValueChanged="Slider_OnSliderValueChanged"
+                                    SliderDoubleClicked="Slider_OnSliderDoubleClicked" TextInputComplete="Slider_OnTextInputComplete"/>
+        <local:ColorComponentSlider x:Name="BlueCompSlider" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="10,0,10,35" SliderValueChanged="Slider_OnSliderValueChanged" 
+                                    SliderDoubleClicked="Slider_OnSliderDoubleClicked" TextInputComplete="Slider_OnTextInputComplete"/>
+        <local:ColorComponentSlider x:Name="AlphaCompSlider" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="10,0,10,10" SliderValueChanged="Slider_OnSliderValueChanged" 
+                                    SliderDoubleClicked="Slider_OnSliderDoubleClicked" TextInputComplete="Slider_OnTextInputComplete"/>
+    </Grid>
+</UserControl>

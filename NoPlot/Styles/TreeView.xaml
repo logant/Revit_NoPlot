@@ -1,0 +1,17 @@
+﻿<ResourceDictionary  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style x:Key="{x:Type TreeView}" TargetType="{x:Type TreeView}">
+        <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}"></Setter>
+        <Setter Property="ItemContainerStyle" Value="{DynamicResource TVIStyle}"/>
+    </Style>
+    <Style x:Key="TVIStyle" TargetType="{x:Type TreeViewItem}">
+        <Style.Resources>
+            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{DynamicResource HighlightBackground}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="{DynamicResource BackgroundTertiaryColor}"/>
+        </Style.Resources>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundPrimaryBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+  
+    </Style>
+</ResourceDictionary>

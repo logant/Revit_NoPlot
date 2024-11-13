@@ -1,0 +1,24 @@
+﻿<ResourceDictionary  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="BackgroundPrimaryBrush" Color="{DynamicResource BackgroundPrimaryColor}"/>
+    <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="{DynamicResource BackgroundSecondaryColor}"/>
+    <SolidColorBrush x:Key="BackgroundTertiaryBrush" Color="{DynamicResource BackgroundTertiaryColor}"/>
+    <SolidColorBrush x:Key="BackgroundHighlightBrush" Color="{DynamicResource HighlightBackground}"/>
+
+    <SolidColorBrush x:Key="ForegroundPrimaryBrush" Color="{DynamicResource ResourceKey=ForegroundPrimaryColor}"/>
+    <SolidColorBrush x:Key="ForegroundSecondaryBrush" Color="{DynamicResource ResourceKey=ForegroundSecondaryColor}"/>
+
+    <SolidColorBrush x:Key="ControlHighlightBrush" Color="{DynamicResource ResourceKey=HighlightButton}" />
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="{DynamicResource ResourceKey=ControlBorderColor}"/>
+    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="{DynamicResource ResourceKey=ControlBackgroundColor}"/>
+
+    <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource ResourceKey=BorderColor}"/>
+
+    <SolidColorBrush x:Key="TestBrush" Color="{DynamicResource TestColor}"/>
+    <SolidColorBrush x:Key="TestBrush2" Color="{DynamicResource TestColor2}"/>
+
+    <!-- FONTS -->
+    <FontFamily x:Key="SegoeFluentIcons">pack://application:,,,/NoPlot;component/resources/Segoe Fluent Icons.ttf#Segoe Fluent Icons</FontFamily>
+    
+</ResourceDictionary>

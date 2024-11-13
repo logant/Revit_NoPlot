@@ -1,23 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Windows.Media.Imaging;
 using System.Windows.Interop;
 using Autodesk.Revit.DB.Events;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using RevitCommon.Attributes;
 using System.IO;
-using System.Threading.Tasks;
-using RevitCommon;
+using adWin = Autodesk.Windows;
 
 namespace NoPlot
 {
-
-    [ExtApp(Name = "NoPlot", Description = "Adds No Plot functionality to Revit",
-        Guid = "79ca195f-118e-4916-9c39-9592f26add86", Vendor = "HKSL", VendorDescription = "HKS LINE, www.hksline.com",
-        ForceEnabled = false, Commands = new[] { "No Plot Toggle", "No Plot Settings" })]
     public class NoPlotApp : IExternalApplication
     {
         internal static NoPlotApp npApp = null;
@@ -107,6 +100,7 @@ namespace NoPlot
                     "NoPlot.pdf");
                 string tabName = "Add-Ins";
                 string panelName = "Tools";
+                /*
                 if (RevitCommon.FileUtils.GetPluginSettings(typeof(NoPlotApp).Assembly.GetName().Name,
                     out Dictionary<string, string> settings))
                 {
@@ -127,7 +121,7 @@ namespace NoPlot
                     if (settings.ContainsKey("panel-name") && !string.IsNullOrWhiteSpace(settings["panel-name"]))
                         panelName = settings["panel-name"];
                 }
-
+                */
                 // Set the help file
                 ContextualHelp help = null;
                 if (File.Exists(helpPath))
@@ -148,7 +142,7 @@ namespace NoPlot
 
                 // Create the button
 
-                SplitButton sb = RevitCommon.Interface.Revit.AddToRibbon(application, tabName, panelName, sbd);
+                SplitButton sb = AddToRibbon(application, tabName, panelName, sbd);
 
                 if (help != null)
                     sb.SetContextualHelp(help);
@@ -167,7 +161,91 @@ namespace NoPlot
             }
         }
 
-       
+        /// <summary>
+        /// Add a SplitPushButton to Revit
+        /// </summary>
+        /// <param name="revApp">Revit's UIControlledApplication for adding the button</param>
+        /// <param name="tabName">Name of the tab you want to add the button to.</param>
+        /// <param name="panelName">Name of the panel on the tab you want to add the button</param>
+        /// <param name="button">SplitButtonData object to add to the ribbon.</param>
+        /// <returns>If successful, a SplitButton object is returned that can be used to add commands from its drop-down. If unsuccessful, it returns null.</returns>
+        public static SplitButton AddToRibbon(UIControlledApplication revApp, string tabName, string panelName, SplitButtonData button)
+        {
+            RibbonPanel panel = GetRibbonPanel(revApp, tabName, panelName);
+
+            // Add the button to the panel
+            if (panel != null)
+                return panel.AddItem(button) as SplitButton;
+            else
+            {
+                TaskDialog.Show("Error", "Could not add split button to the Revit ribbon for:\n" + button.Text);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// This is used by the other methods in this class, it's purpose is to find or create the tab and panel specified by
+        /// the inputs. If the items do not exist they get created, if they do exist they're found and returned. This should only
+        /// be used with a tab name that is non-default to the Revit Ribbon, excepting the Add-Ins tab which is allowed.
+        /// </summary>
+        /// <param name="revApp">UIControlledApplication from the IExternalApplication's OnStartUp method.</param>
+        /// <param name="tabName">Name of the tab a button will be created on. Only Add-Ins is acceptable from the default Revit tabs.</param>
+        /// <param name="panelName">Name of the panel the button will be created on.</param>
+        /// <returns></returns>
+        private static RibbonPanel GetRibbonPanel(UIControlledApplication revApp, string tabName, string panelName)
+        {
+            try
+            {
+                // Verify if the tab exists, create it if ncessary
+                adWin.RibbonControl ribbon = adWin.ComponentManager.Ribbon;
+                adWin.RibbonTab tab = null;
+                bool defaultTab = false;
+
+                foreach (adWin.RibbonTab t in ribbon.Tabs)
+                {
+                    if (t.Id == tabName)
+                    {
+                        if (t.Id != t.Name)
+                            defaultTab = true;
+                        tab = t;
+                        break;
+                    }
+                }
+
+                if (!defaultTab && tab == null)
+                    revApp.CreateRibbonTab(tabName);
+                if (defaultTab)
+                    tab = null;
+
+                // Verify if the panel exists
+                List<RibbonPanel> panels;
+                if (defaultTab)
+                    panels = revApp.GetRibbonPanels();
+                else
+                    panels = revApp.GetRibbonPanels(tabName);
+
+                RibbonPanel panel = null;
+                foreach (RibbonPanel rp in panels)
+                {
+                    if (rp.Name == panelName)
+                    {
+                        panel = rp;
+                        break;
+                    }
+                }
+
+                if (panel == null && !defaultTab)
+                    panel = revApp.CreateRibbonPanel(tabName, panelName);
+                else if (panel == null && defaultTab)
+                    panel = revApp.CreateRibbonPanel(panelName);
+
+                return panel;
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         public void CheckSettings()
         {
@@ -200,7 +278,26 @@ namespace NoPlot
             {
                 // Do the no plot thing
                 doc = e.Document;
-                _viewIds = e.GetViewElementIds().ToList();
+                List<ElementId> viewIds = e.GetViewElementIds().ToList();
+                //if (_settings.IncludePerspectives)
+                    _viewIds = viewIds;
+                /*
+                else
+                {
+                    foreach (ElementId viewId in viewIds)
+                    {
+                        var view = doc.GetElement(viewId) as View;
+                        if(view.ViewType != ViewType.ThreeD)
+                            _viewIds.Add(viewId);
+                        else
+                        {
+                            View3D view3D = view as View3D;
+                            if (!view3D.IsPerspective)
+                                _viewIds.Add(viewId);
+                        }
+                    }
+                }
+                */
                 npElements = NoPlotControl.HideNplt(doc, _settings, _viewIds);
             }
         }
@@ -212,11 +309,7 @@ namespace NoPlot
 
             // Run NoPlot for exports
             if (IsActive && (_settings.WhenExportDwf && (e.Format == ImportExportFileFormat.DWF || e.Format == ImportExportFileFormat.DWFX))
-#if REVIT2022 
                 || (_settings.WhenExportPdf && e.Format == ImportExportFileFormat.PDF))
-#else
-                ) 
-#endif
             {
                 doc = e.Document;
                 PrintManager pm = doc.PrintManager;
@@ -228,7 +321,16 @@ namespace NoPlot
                     _viewIds = new List<ElementId>();
                     foreach (View v in vs)
                     {
-                        _viewIds.Add(v.Id);
+                        /*
+                        if(!_settings.IncludePerspectives && v.ViewType == ViewType.ThreeD)
+                        {
+                            if(((View3D)v).IsPerspective)
+                                continue;
+                            else
+                                _viewIds.Add(v.Id);
+                        }
+                        else*/
+                            _viewIds.Add(v.Id);
                     }
                 }
 
@@ -251,11 +353,7 @@ namespace NoPlot
         private void Exported(object sender, FileExportedEventArgs e)
         {
             if (IsActive && (_settings.WhenExportDwf && (e.Format == ImportExportFileFormat.DWF || e.Format == ImportExportFileFormat.DWFX))
-#if REVIT2022
                 || (_settings.WhenExportPdf && e.Format == ImportExportFileFormat.PDF))
-#else
-                ) 
-#endif
                 ResetViews();
             
         }
@@ -263,9 +361,8 @@ namespace NoPlot
 
         public void ResetViews()
         {
-            NoPlotControl.ResetViews(doc, npElements);
+            NoPlotControl.ResetViews(doc, npElements, _settings);
             _viewIds.Clear();
-            FileUtils.WriteToHome(this.GetType().Assembly.GetName().Name, doc.Application.VersionNumber, doc.Application.Username);
         }
 
     }

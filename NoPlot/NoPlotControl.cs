@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Documents;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
@@ -23,6 +19,8 @@ namespace NoPlot
                 {
                     View v = doc.GetElement(obj.View) as View;
                     
+                    
+
                     // Reset the temporary hide
                     v.DisableTemporaryViewMode(TemporaryViewMode.TemporaryHideIsolate);
 
@@ -42,6 +40,33 @@ namespace NoPlot
 
                 t.Commit();
             }
+        }
+
+        public static void ResetViews(Document doc, List<NoPlotObj> objs, Settings settings)
+        {
+            //if (settings.IncludePerspectives)
+            
+            ResetViews(doc, objs);
+            /*
+            else
+            {
+                // remove perspectives?
+                var cleanObjs = new List<NoPlotObj>();
+                foreach (NoPlotObj npo in objs)
+                {
+                    View v = doc.GetElement(npo.View) as View;
+                    if (v.ViewType != ViewType.ThreeD)
+                        cleanObjs.Add(npo);
+                    else
+                    {
+                        View3D v3d = v as View3D;
+                        if (!v3d.IsPerspective)
+                            cleanObjs.Add(npo);
+                    }
+                }
+                ResetViews(doc, cleanObjs);
+            }
+            */
         }
 
         public static List<NoPlotObj> HideNplt(Document doc, Settings settings, List<ElementId> viewIds)
@@ -176,11 +201,7 @@ namespace NoPlot
             List<ElementFilter> filters = new List<ElementFilter>();
             foreach (string st in settings.SearchTerms)
             {
-#if REVIT2022
                 FilterRule rule = new FilterStringRule(provider, new FilterStringContains(), st);
-#else
-                FilterRule rule = new FilterStringRule(provider, new FilterStringContains(), st, settings.CaseSensitive);
-#endif
                 filters.Add(new ElementParameterFilter(rule));
             }
             LogicalOrFilter filter = new LogicalOrFilter(filters);
@@ -234,21 +255,14 @@ namespace NoPlot
             {
                 if (settings.SearchFamNames)
                 {
-#if REVIT2022
                     var fRule = new FilterStringRule(fProvider, new FilterStringContains(), st);
-#else
-                    var fRule = new FilterStringRule(fProvider, new FilterStringContains(), st, settings.CaseSensitive);
-#endif
                     famFilters.Add(new ElementParameterFilter(fRule));
                 }
 
                 if (settings.SearchTypeNames)
                 {
-#if REVIT2022
+
                     var tRule = new FilterStringRule(tProvider, new FilterStringContains(), st);
-#else
-                    var tRule = new FilterStringRule(tProvider, new FilterStringContains(), st, settings.CaseSensitive);
-#endif
                     typFilters.Add(new ElementParameterFilter(tRule));
                 }
             }
