@@ -26,7 +26,7 @@ namespace NoPlot
         public bool WhenPrinting { get; set; }
         public bool WhenExportPdf { get; set; }
         public bool WhenExportDwf { get; set; }
-        //public bool IncludePerspectives { get; set; }
+        public bool IncludePerspectives { get; set; }
 
         public List<string> SearchTerms { get; set; }
         public bool CaseSensitive { get; set; }
@@ -46,7 +46,7 @@ namespace NoPlot
             WhenPrinting = true;
             WhenExportPdf = true;
             WhenExportDwf = true;
-            //IncludePerspectives = false;
+            IncludePerspectives = false;
             SearchTerms = new List<string> { "NPLT" };
             CaseSensitive = false;
 
@@ -83,8 +83,8 @@ namespace NoPlot
                 WhenExportPdf = whenExpPdf == 1;
             if (FileUtils.GetInt(assemblyName, nameof(WhenExportDwf), out int whenExpDwf))
                 WhenExportDwf = whenExpDwf == 1;
-            //if (FileUtils.GetInt(assemblyName, nameof(IncludePerspectives), out int includePerspectives))
-            //    IncludePerspectives = includePerspectives == 1;
+            if (FileUtils.GetInt(assemblyName, nameof(IncludePerspectives), out int includePerspectives))
+                IncludePerspectives = includePerspectives == 1;
 
             if (FileUtils.GetInt(assemblyName, nameof(CaseSensitive), out int caseSensitive))
                 CaseSensitive = caseSensitive == 1;
@@ -110,7 +110,7 @@ namespace NoPlot
             FileUtils.SetInt(assemblyName, nameof(WhenPrinting), WhenPrinting ? 1 : 0);
             FileUtils.SetInt(assemblyName, nameof(WhenExportPdf), WhenExportPdf ? 1 : 0);
             FileUtils.SetInt(assemblyName, nameof(WhenExportDwf), WhenExportDwf ? 1 : 0);
-            //FileUtils.SetInt(assemblyName, nameof(IncludePerspectives), IncludePerspectives ? 1 : 0);
+            FileUtils.SetInt(assemblyName, nameof(IncludePerspectives), IncludePerspectives ? 1 : 0);
 
             FileUtils.SetInt(assemblyName, nameof(CaseSensitive), CaseSensitive ? 1 : 0);
             FileUtils.SetString(assemblyName, nameof(SearchTerms), string.Join("̸", SearchTerms));

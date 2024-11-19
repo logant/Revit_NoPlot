@@ -62,7 +62,7 @@ namespace NoPlot
             PrintCheckbox.IsChecked = _settings.WhenPrinting;
             ExportPDFCheckbox.IsChecked = _settings.WhenExportPdf;
             ExportDWFCheckbox.IsChecked = _settings.WhenExportDwf;
-            //PerspectiveCheckbox.IsChecked = _settings.IncludePerspectives;
+            PerspectiveCheckbox.IsChecked = _settings.IncludePerspectives;
 
             CaseCheckbox.IsChecked = _settings.CaseSensitive;
             SearchTextBox.Text = string.Join("\n", _settings.SearchTerms) + "\n";
@@ -121,7 +121,7 @@ namespace NoPlot
             _settings.WhenPrinting = PrintCheckbox.IsChecked.Value;
             _settings.WhenExportPdf = ExportPDFCheckbox.IsChecked.Value;
             _settings.WhenExportDwf = ExportDWFCheckbox.IsChecked.Value;
-            //_settings.IncludePerspectives = PerspectiveCheckbox.IsChecked.Value;
+            _settings.IncludePerspectives = PerspectiveCheckbox.IsChecked.Value;
 
             _settings.CaseSensitive = CaseCheckbox.IsChecked.Value;
             _settings.SearchTerms = SearchTextBox.Text.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries).ToList();

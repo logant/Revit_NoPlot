@@ -138,6 +138,6 @@
   </ItemGroup>
   <PropertyGroup />
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;%25appdata%25\Autodesk\Revit\Addins\2025\$(TargetFileName)&quot;" />
+    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;%25appdata%25\Autodesk\Revit\Addins\2024\$(TargetFileName)&quot;" />
   </Target>
 </Project>

@@ -11,6 +11,8 @@ namespace NoPlot
     {
         public static void ResetViews(Document doc, List<NoPlotObj> objs)
         {
+            if (objs == null || objs.Count == 0)
+                return;
             using (Transaction t = new Transaction(doc, "Reset Views - NoPlot"))
             {
                 t.Start();
@@ -44,10 +46,8 @@ namespace NoPlot
 
         public static void ResetViews(Document doc, List<NoPlotObj> objs, Settings settings)
         {
-            //if (settings.IncludePerspectives)
-            
-            ResetViews(doc, objs);
-            /*
+            if (settings.IncludePerspectives)
+                ResetViews(doc, objs);
             else
             {
                 // remove perspectives?
@@ -62,11 +62,15 @@ namespace NoPlot
                         View3D v3d = v as View3D;
                         if (!v3d.IsPerspective)
                             cleanObjs.Add(npo);
+                        else
+                        {
+                            npo.TempEnabled = false;
+                            cleanObjs.Add(npo);
+                        }
                     }
                 }
                 ResetViews(doc, cleanObjs);
             }
-            */
         }
 
         public static List<NoPlotObj> HideNplt(Document doc, Settings settings, List<ElementId> viewIds)

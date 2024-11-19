@@ -38,7 +38,7 @@
             <Label Content="Enabled:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,105,0,0" />
             <CheckBox Name="DefaultStateCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="35,130,0,0" Content="No Plot Active by Default At Startup" />
             <CheckBox Name="PromptCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="35,155,0,0" Content="Prompt Before Printing/Exporting" />
-            <!--<CheckBox Name="PerspectiveCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="35,180,0,0" Content="Include Perspective Views" />-->
+            <CheckBox Name="PerspectiveCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="35,180,0,0" Content="Include Perspective Views" />
 
             <Label Content="Search Term(s):" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="325,160,0,0" />
             <TextBox Name="SearchTextBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="425,160,0,0" Width="170" Height="100" 

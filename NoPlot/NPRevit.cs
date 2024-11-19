@@ -40,6 +40,8 @@ namespace NoPlot
             application.ControlledApplication.FileExporting -= Exporting;
             application.ControlledApplication.FileExported -= Exported;
 
+            
+
             return Result.Succeeded;
         }
 
@@ -47,6 +49,7 @@ namespace NoPlot
         {
             try
             {
+                
                 CheckSettings();
                 IsActive = _settings.DefaultActive;
                 npApp = this;
@@ -57,6 +60,7 @@ namespace NoPlot
 
                 application.ControlledApplication.FileExporting += Exporting;
                 application.ControlledApplication.FileExported += Exported;
+                
 
                 BitmapSource bms;
                 PushButtonData npltPBD;
@@ -278,10 +282,10 @@ namespace NoPlot
             {
                 // Do the no plot thing
                 doc = e.Document;
+                
                 List<ElementId> viewIds = e.GetViewElementIds().ToList();
-                //if (_settings.IncludePerspectives)
+                if (_settings.IncludePerspectives)
                     _viewIds = viewIds;
-                /*
                 else
                 {
                     foreach (ElementId viewId in viewIds)
@@ -292,27 +296,42 @@ namespace NoPlot
                         else
                         {
                             View3D view3D = view as View3D;
-                            if (!view3D.IsPerspective)
+                            //if (!view3D.IsPerspective)
                                 _viewIds.Add(viewId);
                         }
                     }
                 }
-                */
                 npElements = NoPlotControl.HideNplt(doc, _settings, _viewIds);
             }
         }
+
 
         private void Exporting(object sender, FileExportingEventArgs e)
         {
             // Check for settings changes.
             CheckSettings();
-
+            var psets = e.Document.GetPrintSettingIds();
+            
             // Run NoPlot for exports
             if (IsActive && ((_settings.WhenExportDwf && (e.Format == ImportExportFileFormat.DWF || e.Format == ImportExportFileFormat.DWFX))
                 || (_settings.WhenExportPdf && e.Format == ImportExportFileFormat.PDF)))
             {
                 doc = e.Document;
-                PrintManager pm = doc.PrintManager;
+
+                PrintManager pm = null;
+                try
+                {
+                    var setIds = e.Document.GetPrintSettingIds();
+                    pm = e.Document.PrintManager;
+
+                } 
+                catch(Exception ex)
+                {
+                    string err = ex.Message;
+                    var src = ex.Source;
+                }
+
+                
                 if (pm.PrintRange == PrintRange.Current || pm.PrintRange == PrintRange.Visible)
                     _viewIds.Add(doc.ActiveView.Id);
                 else
@@ -321,7 +340,7 @@ namespace NoPlot
                     _viewIds = new List<ElementId>();
                     foreach (View v in vs)
                     {
-                        /*
+                        
                         if(!_settings.IncludePerspectives && v.ViewType == ViewType.ThreeD)
                         {
                             if(((View3D)v).IsPerspective)
@@ -329,7 +348,7 @@ namespace NoPlot
                             else
                                 _viewIds.Add(v.Id);
                         }
-                        else*/
+                        else
                             _viewIds.Add(v.Id);
                     }
                 }
