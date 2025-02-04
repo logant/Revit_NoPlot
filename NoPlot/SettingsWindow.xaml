@@ -1,0 +1,72 @@
+﻿<Window x:Class="NoPlot.SettingsWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:NoPlot"
+             mc:Ignorable="d" 
+             WindowStyle="None"
+             WindowStartupLocation="CenterOwner"
+             Background="{DynamicResource BackgroundPrimaryBrush}"
+             Height="370" Width="700">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="40" ResizeBorderThickness="{x:Static SystemParameters.WindowResizeBorderThickness}"/>
+    </WindowChrome.WindowChrome>
+    <Grid x:Name="MainGrid">
+        <Grid x:Name="TitlebarGrid" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32" Margin="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Image Name="TitleImage" Grid.Column="0" Width="24" Height="24" Margin="4" Stretch="None" Source="{DynamicResource IconImgSrc}"/>
+            <TextBlock Text="No Plot Settings" Grid.Column="1" Height="32" FontSize="18" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3"/>
+            <Button x:Name="TitlebarCloseButton" Grid.Column="2" Click="CancelButton_Click" FontFamily="{DynamicResource SegoeFluentIcons}" Content="" Width="32" Height="32" 
+                    WindowChrome.IsHitTestVisibleInChrome="True"/>
+        </Grid>
+        <Grid Name="ClientGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,32,0,0">
+            
+            
+            <Label Content="Theme:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" />
+            <StackPanel Name="ThemePanel" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="30,35,0,0" Height="50">
+                <RadioButton Name="ThemeDefaultRadioButton" Content="Windows Default"  GroupName="ThemeGroup" IsChecked="True"/>
+                <RadioButton Name="ThemeLightRadioButton" Content="Light" GroupName="ThemeGroup"/>
+                <RadioButton Name="ThemeDarkRadioButton" Content="Dark" GroupName="ThemeGroup"/>
+            </StackPanel>
+            
+            <Label Content="Enabled:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,105,0,0" />
+            <CheckBox Name="DefaultStateCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="35,130,0,0" Content="No Plot Active by Default At Startup" />
+            <CheckBox Name="PromptCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="35,155,0,0" Content="Prompt Before Printing/Exporting" />
+            <CheckBox Name="PerspectiveCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="35,180,0,0" Content="Include Perspective Views" />
+
+            <Label Content="Search Term(s):" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="325,160,0,0" />
+            <TextBox Name="SearchTextBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="425,160,0,0" Width="170" Height="100" 
+                     AcceptsReturn="True" TextWrapping="Wrap" LostFocus="SearchTextBox_LostFocus"/>
+            <CheckBox Name="CaseCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="425,265,0,0" Content="Case Sensitive Search Terms"/>
+            
+            <Label Content="Search Space:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="325,10,0,0" />
+            <CheckBox Name="CategoryNamesCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="350,35,0,0" Content="Category Names"/>
+            <CheckBox Name="SubcategoryNamesCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="350,60,0,0" Content="Subcategory Names"  />
+            <CheckBox Name="FamilyNamesCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="350,85,0,0" Content="Family Names" />
+            <CheckBox Name="TypeNamesCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="350,110,0,0" Content="Type Names" />
+            <CheckBox Name="GroupNamesCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="350,135,0,0" Content="Group Names" />
+
+            <Label Content="Events:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="550,10,0,0"/>
+            <CheckBox Name="PrintCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="575,35,0,0" Content="Printing" />
+            <CheckBox Name="ExportPDFCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="575,60,0,0" Content="PDF Export" />
+            <CheckBox Name="ExportDWFCheckbox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="575,85,0,0" Content="DWF Export" />
+
+            
+
+
+            <Button Name="CancelButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="30" Width="90" Margin="10" Content="Cancel" 
+                    Click="CancelButton_Click"/>
+            
+            <Button Name="SaveButton" HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="30" Width="90" Margin="0,0,110,10" Content="Save" 
+                    Click="SaveButton_Click"/>
+
+        </Grid>
+
+    </Grid>
+</Window>

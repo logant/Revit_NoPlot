@@ -13,19 +13,10 @@ namespace NoPlot
         {
             try
             {
-                // Get the version and set the handle var.
-                int.TryParse(commandData.Application.Application.VersionNumber, out int version);
-                IntPtr handle = IntPtr.Zero;
-                if (version < 2019)
-                    handle = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
-                else
-                    handle = commandData.Application.GetType().GetProperty("MainWindowHandle") != null
-                        ? (IntPtr)commandData.Application.GetType().GetProperty("MainWindowHandle").GetValue(commandData.Application)
-                        : IntPtr.Zero;
-
-                // Set the handle to the window
-                NoPlotSettingsForm form = new NoPlotSettingsForm();
-                var wih = new WindowInteropHelper(form)
+                IntPtr handle = commandData.Application.MainWindowHandle;
+               
+                SettingsWindow form = new SettingsWindow();
+                var wih = new WindowInteropHelper(form) 
                 {
                     Owner = handle
                 };

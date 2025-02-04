@@ -1,498 +1,387 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Windows.Media.Imaging;
 using System.Windows.Interop;
 using Autodesk.Revit.DB.Events;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using RevitCommon.Attributes;
 using System.IO;
+using adWin = Autodesk.Windows;
 
 namespace NoPlot
 {
-
-    [ExtApp(Name = "NoPlot", Description = "Adds No Plot functionality to Revit",
-        Guid = "79ca195f-118e-4916-9c39-9592f26add86", Vendor = "HKSL", VendorDescription = "HKS LINE, www.hksline.com",
-        ForceEnabled = false, Commands = new[] { "No Plot Toggle", "No Plot Settings" })]
     public class NoPlotApp : IExternalApplication
     {
         internal static NoPlotApp npApp = null;
-        bool serviceOn = false;
         Document doc;
         List<NoPlotObj> npElements;
-        string npIdentifier = "NPLT";
         RibbonItem npButton;
         List<Category> npSubCats;
+        private List<ElementId> _viewIds = new List<ElementId>();
+        private Settings _settings;
+        
 
-        int revitVersion = 2017;
+        //int revitVersion = 2017;
 
         public static NoPlotApp Instance
         {
             get { return npApp; }
         }
-
+        public bool IsActive { get; set; }
         List<ElementId> npElementIds;
-
 
         public Result OnShutdown(UIControlledApplication application)
         {
             // Close the event handlers
+            application.ControlledApplication.DocumentPrinting -= Printing;
+            application.ControlledApplication.DocumentPrinted -= Printed;
+
+            application.ControlledApplication.FileExporting -= Exporting;
+            application.ControlledApplication.FileExported -= Exported;
+
+            
 
             return Result.Succeeded;
         }
 
         public Result OnStartup(UIControlledApplication application)
         {
-            npApp = this;
-            revitVersion = Convert.ToInt32(application.ControlledApplication.VersionNumber);
-            
-            // Start the events
-            application.ControlledApplication.DocumentPrinting += new EventHandler<DocumentPrintingEventArgs>(Printing);
-            application.ControlledApplication.DocumentPrinted += new EventHandler<DocumentPrintedEventArgs>(Printed);
-
-            BitmapSource bms;
-            PushButtonData npltPBD;
-            serviceOn = Properties.Settings.Default.ServiceState;
-            if (serviceOn)
+            try
             {
-                bms = Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.NoPlotOn.GetHbitmap(), IntPtr.Zero, System.Windows.Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+                
+                CheckSettings();
+                IsActive = _settings.DefaultActive;
+                npApp = this;
+               
+                // Start the events
+                application.ControlledApplication.DocumentPrinting += Printing;
+                application.ControlledApplication.DocumentPrinted += Printed;
 
-                npltPBD = new PushButtonData("No Plot", "No Plot", typeof(NoPlotApp).Assembly.Location, typeof(NoPlotToggleCmd).FullName)
+                application.ControlledApplication.FileExporting += Exporting;
+                application.ControlledApplication.FileExported += Exported;
+                
+
+                BitmapSource bms;
+                PushButtonData npltPBD;
+                if (IsActive)
                 {
-                    LargeImage = bms,
-                    ToolTip = "No Plot functionality is currently on.  Push button to toggle the watcher off for this session."
+                    bms = Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.NoPlotOn.GetHbitmap(), IntPtr.Zero,
+                        System.Windows.Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+
+                    npltPBD = new PushButtonData("No Plot", "No Plot", typeof(NoPlotApp).Assembly.Location,
+                        typeof(NoPlotToggleCmd).FullName)
+                    {
+                        LargeImage = bms,
+                        ToolTip =
+                            "No Plot functionality is currently on.  Push button to toggle the watcher off for this session."
+                    };
+                }
+                else
+                {
+                    bms = Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.NoPlotOff.GetHbitmap(),
+                        IntPtr.Zero, System.Windows.Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+
+                    npltPBD = new PushButtonData("No Plot", "No Plot", typeof(NoPlotApp).Assembly.Location,
+                        typeof(NoPlotToggleCmd).FullName)
+                    {
+                        LargeImage = bms,
+                        ToolTip =
+                            "No Plot functionality is currently off.  Push button to toggle the watcher on for this session."
+                    };
+                }
+
+                PushButtonData settingsPBD = new PushButtonData("Settings", "Settings",
+                    typeof(NoPlotApp).Assembly.Location, typeof(SettingsCmd).FullName)
+                {
+                    LargeImage = Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.NoPlotSettings.GetHbitmap(),
+                        IntPtr.Zero, System.Windows.Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions()),
+                    ToolTip = "Settings for the No Plot command."
                 };
+
+
+                string helpPath = Path.Combine(Path.GetDirectoryName(typeof(NoPlotApp).Assembly.Location) ?? string.Empty, "help",
+                    "NoPlot.pdf");
+                string tabName = "Add-Ins";
+                string panelName = "Tools";
+                /*
+                if (RevitCommon.FileUtils.GetPluginSettings(typeof(NoPlotApp).Assembly.GetName().Name,
+                    out Dictionary<string, string> settings))
+                {
+                    // Settings retrieved, lets try to use them.
+                    if (settings.ContainsKey("help-path") && !string.IsNullOrWhiteSpace(settings["help-path"]))
+                    {
+                        // Check to see if it's relative path
+                        string hp = Path.Combine(Path.GetDirectoryName(typeof(NoPlotApp).Assembly.Location) ?? string.Empty,
+                            settings["help-path"]);
+                        if (File.Exists(hp))
+                            helpPath = hp;
+                        else
+                            helpPath = settings["help-path"];
+                    }
+
+                    if (settings.ContainsKey("tab-name") && !string.IsNullOrWhiteSpace(settings["tab-name"]))
+                        tabName = settings["tab-name"];
+                    if (settings.ContainsKey("panel-name") && !string.IsNullOrWhiteSpace(settings["panel-name"]))
+                        panelName = settings["panel-name"];
+                }
+                */
+                // Set the help file
+                ContextualHelp help = null;
+                if (File.Exists(helpPath))
+                    help = new ContextualHelp(ContextualHelpType.ChmFile, helpPath);
+                else if (Uri.TryCreate(helpPath, UriKind.Absolute, out Uri uriResult) &&
+                         (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+                    help = new ContextualHelp(ContextualHelpType.Url, helpPath);
+                if (help != null)
+                {
+                    npltPBD.SetContextualHelp(help);
+                    settingsPBD.SetContextualHelp(help);
+                }
+
+                SplitButtonData sbd = new SplitButtonData("NoPlot", "No Plot");
+                if (help != null)
+                    sbd.SetContextualHelp(help);
+
+
+                // Create the button
+
+                SplitButton sb = AddToRibbon(application, tabName, panelName, sbd);
+
+                if (help != null)
+                    sb.SetContextualHelp(help);
+
+                npButton = sb.AddPushButton(npltPBD);
+                sb.AddPushButton(settingsPBD);
+                sb.IsSynchronizedWithCurrentItem = false;
+
+                return Result.Succeeded;
             }
+            catch (Exception ex)
+            {
+                TaskDialog.Show("No Plot Error", ex.ToString());
+                return Result.Failed;
+
+            }
+        }
+
+        /// <summary>
+        /// Add a SplitPushButton to Revit
+        /// </summary>
+        /// <param name="revApp">Revit's UIControlledApplication for adding the button</param>
+        /// <param name="tabName">Name of the tab you want to add the button to.</param>
+        /// <param name="panelName">Name of the panel on the tab you want to add the button</param>
+        /// <param name="button">SplitButtonData object to add to the ribbon.</param>
+        /// <returns>If successful, a SplitButton object is returned that can be used to add commands from its drop-down. If unsuccessful, it returns null.</returns>
+        public static SplitButton AddToRibbon(UIControlledApplication revApp, string tabName, string panelName, SplitButtonData button)
+        {
+            RibbonPanel panel = GetRibbonPanel(revApp, tabName, panelName);
+
+            // Add the button to the panel
+            if (panel != null)
+                return panel.AddItem(button) as SplitButton;
             else
             {
-                bms = Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.NoPlotOff.GetHbitmap(), IntPtr.Zero, System.Windows.Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-
-                npltPBD = new PushButtonData("No Plot", "No Plot", typeof(NoPlotApp).Assembly.Location, typeof(NoPlotToggleCmd).FullName)
-                {
-                    LargeImage = bms,
-                    ToolTip = "No Plot functionality is currently off.  Push button to toggle the watcher on for this session."
-                };
+                TaskDialog.Show("Error", "Could not add split button to the Revit ribbon for:\n" + button.Text);
+                return null;
             }
+        }
 
-            PushButtonData settingsPBD = new PushButtonData("Settings", "Settings", typeof(NoPlotApp).Assembly.Location, typeof(SettingsCmd).FullName)
+        /// <summary>
+        /// This is used by the other methods in this class, it's purpose is to find or create the tab and panel specified by
+        /// the inputs. If the items do not exist they get created, if they do exist they're found and returned. This should only
+        /// be used with a tab name that is non-default to the Revit Ribbon, excepting the Add-Ins tab which is allowed.
+        /// </summary>
+        /// <param name="revApp">UIControlledApplication from the IExternalApplication's OnStartUp method.</param>
+        /// <param name="tabName">Name of the tab a button will be created on. Only Add-Ins is acceptable from the default Revit tabs.</param>
+        /// <param name="panelName">Name of the panel the button will be created on.</param>
+        /// <returns></returns>
+        private static RibbonPanel GetRibbonPanel(UIControlledApplication revApp, string tabName, string panelName)
+        {
+            try
             {
-                LargeImage = Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.NoPlotSettings.GetHbitmap(), IntPtr.Zero, System.Windows.Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions()),
-                ToolTip = "Settings for the No Plot command."
-            };
+                // Verify if the tab exists, create it if ncessary
+                adWin.RibbonControl ribbon = adWin.ComponentManager.Ribbon;
+                adWin.RibbonTab tab = null;
+                bool defaultTab = false;
 
-
-            string helpPath = Path.Combine(Path.GetDirectoryName(typeof(NoPlotApp).Assembly.Location), "help", "NoPlot.pdf");
-            string tabName = "Add-Ins";
-            string panelName = "Tools";
-            if (RevitCommon.FileUtils.GetPluginSettings(typeof(NoPlotApp).Assembly.GetName().Name, out Dictionary<string, string> settings))
-            {
-                // Settings retrieved, lets try to use them.
-                if (settings.ContainsKey("help-path") && !string.IsNullOrWhiteSpace(settings["help-path"]))
+                foreach (adWin.RibbonTab t in ribbon.Tabs)
                 {
-                    // Check to see if it's relative path
-                    string hp = Path.Combine(Path.GetDirectoryName(typeof(NoPlotApp).Assembly.Location), settings["help-path"]);
-                    if (File.Exists(hp))
-                        helpPath = hp;
-                    else
-                        helpPath = settings["help-path"];
+                    if (t.Id == tabName)
+                    {
+                        if (t.Id != t.Name)
+                            defaultTab = true;
+                        tab = t;
+                        break;
+                    }
                 }
-                if (settings.ContainsKey("tab-name") && !string.IsNullOrWhiteSpace(settings["tab-name"]))
-                    tabName = settings["tab-name"];
-                if (settings.ContainsKey("panel-name") && !string.IsNullOrWhiteSpace(settings["panel-name"]))
-                    panelName = settings["panel-name"];
-            }
 
-            // Set the help file
-            ContextualHelp help = null;
-            if (File.Exists(helpPath))
-                help = new ContextualHelp(ContextualHelpType.ChmFile, helpPath);
-            else if (Uri.TryCreate(helpPath, UriKind.Absolute, out Uri uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
-                help = new ContextualHelp(ContextualHelpType.Url, helpPath);
-            if (help != null)
+                if (!defaultTab && tab == null)
+                    revApp.CreateRibbonTab(tabName);
+                if (defaultTab)
+                    tab = null;
+
+                // Verify if the panel exists
+                List<RibbonPanel> panels;
+                if (defaultTab)
+                    panels = revApp.GetRibbonPanels();
+                else
+                    panels = revApp.GetRibbonPanels(tabName);
+
+                RibbonPanel panel = null;
+                foreach (RibbonPanel rp in panels)
+                {
+                    if (rp.Name == panelName)
+                    {
+                        panel = rp;
+                        break;
+                    }
+                }
+
+                if (panel == null && !defaultTab)
+                    panel = revApp.CreateRibbonPanel(tabName, panelName);
+                else if (panel == null && defaultTab)
+                    panel = revApp.CreateRibbonPanel(panelName);
+
+                return panel;
+            }
+            catch
             {
-                npltPBD.SetContextualHelp(help);
-                settingsPBD.SetContextualHelp(help);
+                return null;
             }
+        }
 
-            SplitButtonData sbd = new SplitButtonData("NoPlot", "No Plot");
-            if(help != null)
-                sbd.SetContextualHelp(help);
-            
-
-            // Create the button
-            SplitButton sb = RevitCommon.UI.AddToRibbon(application, tabName, panelName, sbd);
-            if(help != null)
-                sb.SetContextualHelp(help);
-
-            npButton = sb.AddPushButton(npltPBD);
-            sb.AddPushButton(settingsPBD);
-            sb.IsSynchronizedWithCurrentItem = false;
-
-            return Result.Succeeded;
+        public void CheckSettings()
+        {
+            _settings = new Settings();
         }
 
         public void ToggleState()
         {
-            if(serviceOn)
-            {
-                serviceOn = false;
-
-                // Change the button
-                RibbonButton button = npButton as RibbonButton;
-                button.ItemText = "No Plot";
-                button.ToolTip = "No Plot functionality is currently off.  Push button to toggle the watcher on for this session.";
-                button.LargeImage = Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.NoPlotOff.GetHbitmap(), IntPtr.Zero, System.Windows.Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-                npButton = button;
-            }
-            else
-            {
-                serviceOn = true;
-
-                // Change the button
-                RibbonButton button = npButton as RibbonButton;
-                button.ItemText = "No Plot";
-                button.ToolTip = "No Plot functionality is currently on.  Push button to toggle the watcher off for this session.";
-                button.LargeImage = Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.NoPlotOn.GetHbitmap(), IntPtr.Zero, System.Windows.Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-                npButton = button;
-            }
+            IsActive = !IsActive;
+            
+            string currentState = IsActive ? "on" : "off";
+            string oppositeState = IsActive ? "off" : "on";
+            IntPtr bmp = IsActive ? Properties.Resources.NoPlotOn.GetHbitmap() : Properties.Resources.NoPlotOff.GetHbitmap();
+            
+            RibbonButton button = npButton as RibbonButton;
+            button.ItemText = "No Plot";
+            button.ToolTip = $"No Plot functionality is currently {currentState}. Push button to toggle the watcher {oppositeState} for this session.";
+            button.LargeImage = Imaging.CreateBitmapSourceFromHBitmap(bmp, IntPtr.Zero, System.Windows.Int32Rect.Empty,
+                BitmapSizeOptions.FromEmptyOptions());
+            npButton = button;
         }
 
+        #region Printing and Exporting
         public void Printing(object sender, DocumentPrintingEventArgs e)
         {
-            if (serviceOn)
+            // Make sure settings are still accurate
+            CheckSettings();
+
+            if (IsActive && _settings.WhenPrinting)
             {
                 // Do the no plot thing
                 doc = e.Document;
-                npIdentifier = Properties.Settings.Default.NoPlotId;
-                // Check to see if there are even any NPLT elements in the project.
-                bool npltFound = false;
                 
-                // First check subcategories
-                foreach (Category cat in doc.Settings.Categories)
+                List<ElementId> viewIds = e.GetViewElementIds().ToList();
+                if (_settings.IncludePerspectives)
+                    _viewIds = viewIds;
+                else
                 {
-                    foreach(Category subCat in cat.SubCategories)
+                    foreach (ElementId viewId in viewIds)
                     {
-                        if(subCat.Name.Contains(npIdentifier))
+                        var view = doc.GetElement(viewId) as View;
+                        if(view.ViewType != ViewType.ThreeD)
+                            _viewIds.Add(viewId);
+                        else
                         {
-                            npltFound = true;
-                            break;
-                        }
-                    }
-
-                    if (npltFound)
-                        break;
-                }
-                if (!npltFound)
-                {
-                    // Check ElementTypes
-                    //Get a list of elements in the project that have the npIdentifier in the type name
-                    FilterableValueProvider provider = new ParameterValueProvider(new ElementId(BuiltInParameter.ALL_MODEL_TYPE_NAME));
-                    FilterRule rule = new FilterStringRule(provider, new FilterStringContains(), npIdentifier, true);
-                    ElementParameterFilter epf = new ElementParameterFilter(rule, false);
-                    if(new FilteredElementCollector(doc).WherePasses(epf).ToElementIds().Count > 0)
-                    {
-                        npltFound = true;
-                    }
-                }
-                if (!npltFound)
-                {
-                    // Check ElementTypes
-                    //Get a list of elements in the project that have the npIdentifier in the type name
-                    FilterableValueProvider providerFam = new ParameterValueProvider(new ElementId(BuiltInParameter.ALL_MODEL_FAMILY_NAME));
-                    FilterRule ruleFam = new FilterStringRule(providerFam, new FilterStringContains(), npIdentifier, true);
-                    ElementParameterFilter epfFam = new ElementParameterFilter(ruleFam, false);
-                    new FilteredElementCollector(doc).WherePasses(epfFam).ToElementIds();
-                    
-                    if (new FilteredElementCollector(doc).WherePasses(epfFam).ToElementIds().Count > 0)
-                    {
-                        npltFound = true;
-                    }
-                }
-                if(!npltFound)
-                {
-                    IEnumerable<ElementId> npGroupElems = new FilteredElementCollector(doc).OfClass(typeof(Group)).ToElementIds();
-                    foreach (ElementId eid in npGroupElems)
-                    {
-                        Element gElem = doc.GetElement(eid);
-                        if (gElem.Name.Contains(npIdentifier))
-                        {
-                            npltFound = true;
-                            break;
+                            View3D view3D = view as View3D;
+                            //if (!view3D.IsPerspective)
+                                _viewIds.Add(viewId);
                         }
                     }
                 }
-
-                if (!npltFound)
-                    return;
-
-                bool cont = true;
-                if(Properties.Settings.Default.AskBefore)
-                {
-                    TaskDialog verifyDlg = new TaskDialog("Warning")
-                    {
-                        TitleAutoPrefix = false,
-                        MainInstruction = "No Plot is Active",
-                        MainContent = "Hide '" + npIdentifier + "' objects for this print?",
-                        CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No
-                    };
-
-                    TaskDialogResult verifyResult = verifyDlg.Show();
-
-                    if (TaskDialogResult.No == verifyResult)
-                        cont = false;
-                }
-
-                if (cont)
-                {
-                    // Do the no plot thing
-                    doc = e.Document;
-                    npIdentifier = Properties.Settings.Default.NoPlotId;
-                    
-                    // Get a list of elements in the project that have the npIdentifier in the type name
-                    FilterableValueProvider provider = new ParameterValueProvider(new ElementId(BuiltInParameter.ALL_MODEL_TYPE_NAME));
-                    FilterRule rule = new FilterStringRule(provider, new FilterStringContains(), npIdentifier, true);
-                    ElementParameterFilter epf = new ElementParameterFilter(rule, false);
-                    IEnumerable<ElementId> npElems = new FilteredElementCollector(doc).WherePasses(epf).ToElementIds();
-                    npElementIds = npElems.ToList();
-
-                    FilterableValueProvider providerFam = new ParameterValueProvider(new ElementId(BuiltInParameter.ALL_MODEL_FAMILY_NAME));
-                    FilterRule ruleFam = new FilterStringRule(providerFam, new FilterStringContains(), npIdentifier, true);
-                    ElementParameterFilter epfFam = new ElementParameterFilter(ruleFam, false);
-                    IEnumerable<ElementId> npElemsFam = new FilteredElementCollector(doc).WherePasses(epfFam).ToElementIds();
-                    npElementIds.AddRange(npElemsFam.ToList());
-
-                    IEnumerable<ElementId> npGroupElems = new FilteredElementCollector(doc).OfClass(typeof(Group)).ToElementIds();
-                    foreach(ElementId eid in npGroupElems)
-                    {
-                        Element gElem = doc.GetElement(eid);
-                        if(gElem.Name.Contains(npIdentifier))
-                        {
-                            Group g = gElem as Group;
-                            npElementIds.AddRange(g.GetMemberIds());
-                        }
-                    }
-
-                    List<ElementId> views = new List<ElementId>();
-                    views.AddRange(e.GetViewElementIds());
-
-                    // Get a list of subcategories to turn off.
-                    Categories cats = doc.Settings.Categories;
-                    npSubCats = new List<Category>();
-                    foreach (Category cat in cats)
-                    {
-                        foreach (Category sc in cat.SubCategories)
-                        {
-                            if (sc.Name.Contains(npIdentifier))
-                                npSubCats.Add(sc);
-                        }
-                    }
-
-                    npElements = new List<NoPlotObj>();
-                    using (Transaction hideTrans = new Transaction(doc, "Temporary Hide for No Plot"))
-                    {
-                        hideTrans.Start();
-                        foreach (ElementId viewId in views)
-                        {
-                            ViewSheet sheet = null;
-                            try
-                            {
-                                sheet = doc.GetElement(viewId) as ViewSheet;
-                            }
-                            catch { }
-
-                            if (sheet != null) // We can safely assume this is a sheet object
-                            {
-                                View sheetView = doc.GetElement(viewId) as View;
-                                TemporaryHide(sheetView);
-
-                                sheet.GetAllPlacedViews().ToList().ForEach(vid => TemporaryHide(doc.GetElement(vid) as View));
-                            }
-
-                            else  // The view is not a sheet but another view type
-                            {
-                                View view = doc.GetElement(viewId) as View;
-                                TemporaryHide(view);
-                            }
-                        }
-                        hideTrans.Commit();
-                    }
-                }
+                npElements = NoPlotControl.HideNplt(doc, _settings, _viewIds);
             }
         }
 
-        public void Printed(object sender, DocumentPrintedEventArgs e)
-        {
-            if (serviceOn)
-            {
-                ResetViews();
-                
-                // Write back to home about it...
-                doc = e.Document;
-                string userName = doc.Application.Username;
-                string commandName = "No Plot";
-                string appVersion = doc.Application.VersionNumber;
 
-                RevitCommon.FileUtils.WriteToHome(commandName, appVersion, userName);
-            }
-        }
-
-        public void TemporaryHide(View view)
+        private void Exporting(object sender, FileExportingEventArgs e)
         {
-            // Get the view template and then turn it off so subcategories can be hidden
-            ElementId viewTemplateId = view.ViewTemplateId;
-            view.get_Parameter(BuiltInParameter.VIEW_TEMPLATE).Set(new ElementId(-1));
+            // Check for settings changes.
+            CheckSettings();
+            var psets = e.Document.GetPrintSettingIds();
             
-
-            // API for a view's category visibility changes at Revit 2018, so reflection is used to find the right method call.
-            Type viewType = view.GetType();
-            MethodInfo catVisMethod = null;
-            if (revitVersion > 2017)
-                catVisMethod = viewType.GetMethod("GetCategoryHidden");
-            else
-                catVisMethod = viewType.GetMethod("GetVisibility");
-
-            MethodInfo catHideMethod = null;
-            MethodInfo canHideMethod = null;
-            if (revitVersion > 2017)
+            // Run NoPlot for exports
+            if (IsActive && ((_settings.WhenExportDwf && (e.Format == ImportExportFileFormat.DWF || e.Format == ImportExportFileFormat.DWFX))
+                || (_settings.WhenExportPdf && e.Format == ImportExportFileFormat.PDF)))
             {
-                catHideMethod = viewType.GetMethod("SetCategoryHidden");
-                canHideMethod = viewType.GetMethod("CanCategoryBeHidden");
-            }
-            else
-                catHideMethod = viewType.GetMethod("SetVisibility");
+                doc = e.Document;
 
-
-            //Temporary hide all of the subcateogries in the subcat list
-            List<Category> hiddenSubCats = new List<Category>();
-            foreach (Category cat in npSubCats)
-            {
+                PrintManager pm = null;
                 try
                 {
-                    //<=2017 : Check if a category is visible
-                    //view.GetVisibility(cat);
-                    //view.SetVisibility(cat, bool visible);
+                    var setIds = e.Document.GetPrintSettingIds();
+                    pm = e.Document.PrintManager;
 
-                    //2018   : Check if a category is hidden in the view.
-                    //view.GetCategoryHidden(cat.Id);
-                    //view.SetCategoryHidden(cat.Id, bool hidden);
+                } 
+                catch(Exception ex)
+                {
+                    string err = ex.Message;
+                    var src = ex.Source;
+                }
 
-                    if(revitVersion > 2017)
+                
+                if (pm.PrintRange == PrintRange.Current || pm.PrintRange == PrintRange.Visible)
+                    _viewIds.Add(doc.ActiveView.Id);
+                else
+                {
+                    ViewSet vs = pm.ViewSheetSetting.CurrentViewSheetSet.Views;
+                    _viewIds = new List<ElementId>();
+                    foreach (View v in vs)
                     {
-                        // Check to see if the category can be hidden, ie if it exists or is otherwise not locked
-                        bool canHide = Convert.ToBoolean(canHideMethod.Invoke(view, new object[] { cat.Id }));
-                        if (canHide)
+                        
+                        if(!_settings.IncludePerspectives && v.ViewType == ViewType.ThreeD)
                         {
-                            object[] paramArr = new object[] {cat.Id};
-                            var result = catVisMethod.Invoke(view, paramArr);
-                            // A result of false means a category is not hidden, aka is visible.
-                            // If that is the case, we need to hide it
-                            if ((bool) result == false)
-                            {
-                                hiddenSubCats.Add(cat);
-                                object[] setParamArr = new object[] {cat.Id, true};
-                                catHideMethod.Invoke(view, setParamArr);
-                            }
+                            if(((View3D)v).IsPerspective)
+                                continue;
+                            else
+                                _viewIds.Add(v.Id);
                         }
-                    }
-                    else // 2017 and earlier versions
-                    {
-                        object[] paramArr = new object[] { cat };
-                        var result = catVisMethod.Invoke(view, paramArr);
-                        // A result of true means a category is visible.
-                        // If that is the case, we need to hide it
-                        if ((bool)result == true)
-                        {
-                            hiddenSubCats.Add(cat);
-                            object[] setParamArr = new object[] { cat, false };
-                            catHideMethod.Invoke(view, setParamArr);
-                        }
+                        else
+                            _viewIds.Add(v.Id);
                     }
                 }
-                catch { } // Subcategory does not exist, ie model category in drafting view.
-            }
-            
-            // Hide the NP Elements
-            view.HideElementsTemporary(npElementIds);
 
-            // Store the information so that we can unhide it afterwards
-            NoPlotObj np = new NoPlotObj
-            {
-                NPElements = npElementIds,
-                SubCategories = hiddenSubCats,
-                View = view.Id,
-                ViewTemplate = viewTemplateId
-            };
-            npElements.Add(np);
+                npElements = NoPlotControl.HideNplt(doc, _settings, _viewIds);
+            }
+
         }
+        #endregion
+
+        #region Printed and Exported
+        public void Printed(object sender, DocumentPrintedEventArgs e)
+        {
+            if (IsActive)
+                ResetViews();
+            
+        }
+
+        
+
+        private void Exported(object sender, FileExportedEventArgs e)
+        {
+            if (IsActive && (_settings.WhenExportDwf && (e.Format == ImportExportFileFormat.DWF || e.Format == ImportExportFileFormat.DWFX))
+                || (_settings.WhenExportPdf && e.Format == ImportExportFileFormat.PDF))
+                ResetViews();
+            
+        }
+        #endregion
 
         public void ResetViews()
         {
-            using (Transaction resetTrans = new Transaction(doc, "Reset No Plot View States"))
-            {
-                resetTrans.Start();
-                foreach (NoPlotObj np in npElements)
-                {
-                    View v = doc.GetElement(np.View) as View;
-                    Type viewType = v.GetType();
-                    MethodInfo catHideMethod = null;
-                    MethodInfo canHideMethod = null;
-                    if (revitVersion > 2017)
-                    {
-                        catHideMethod = viewType.GetMethod("SetCategoryHidden");
-                        canHideMethod = viewType.GetMethod("CanCategoryBeHidden");
-                    }
-                    else
-                    {
-                        catHideMethod = viewType.GetMethod("SetVisibility");
-                    }
-
-                    // Reset the temporary hide
-                    v.DisableTemporaryViewMode(TemporaryViewMode.TemporaryHideIsolate);
-
-                    foreach (Category c in np.SubCategories)
-                    {
-                        try
-                        {
-                            //<=2017 : Check if a category is visible
-                            //view.GetVisibility(cat);
-                            //view.SetVisibility(cat, bool visible);
-
-                            //2018   : Check if a category is hidden in the view.
-                            //view.GetCategoryHidden(cat.Id);
-                            //view.SetCategoryHidden(cat.Id, bool hide);
-                            if (revitVersion > 2017)
-                            {
-                                // Check to see if the category can be hidden, ie if it exists or is otherwise not locked
-                                bool canHide = Convert.ToBoolean(canHideMethod.Invoke(v, new object[] {c.Id}));
-                                if (canHide)
-                                {
-                                    object[] setParamArr = new object[] {c.Id, false};
-                                    catHideMethod.Invoke(v, setParamArr);
-                                }
-                            }
-                            else
-                            {
-                                object[] setParamArr = new object[] { c, true };
-                                catHideMethod.Invoke(v, setParamArr);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            TaskDialog.Show("Error", e.Message);
-                        }
-                            
-                    }
-                    
-                    // Assign the original view template
-                    if (np.ViewTemplate.IntegerValue != -1)
-                    {
-                        v.get_Parameter(BuiltInParameter.VIEW_TEMPLATE).Set(np.ViewTemplate);
-                    }
-                }
-                resetTrans.Commit();
-            }
+            NoPlotControl.ResetViews(doc, npElements, _settings);
+            _viewIds.Clear();
         }
 
     }

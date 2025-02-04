@@ -1,0 +1,14 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/NoPlot;component/Styles/Brushes.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/NoPlot;component/Styles/Button.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/NoPlot;component/Styles/CheckBox.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/NoPlot;component/Styles/Label.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/NoPlot;component/Styles/RadioButton.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/NoPlot;component/Styles/TextBlock.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/NoPlot;component/Styles/TextBox.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+    
+</ResourceDictionary>

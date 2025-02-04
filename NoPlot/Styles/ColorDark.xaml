@@ -1,0 +1,33 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ************************** -->
+    <!-- **     COLORS DARK      ** -->
+    <!-- ************************** -->
+
+    <!-- Background -->
+    <Color x:Key="BackgroundPrimaryColor">#FF201F1E</Color>
+    <Color x:Key="BackgroundSecondaryColor">#FF242424</Color>
+    <Color x:Key="BackgroundTertiaryColor">#FFA9A9A9</Color>
+
+    <!-- Foreground -->
+    <Color x:Key="ForegroundPrimaryColor">#FFFFFFFF</Color>
+    <Color x:Key="ForegroundSecondaryColor">#FFEAEAEA</Color>
+
+    <Color x:Key="ControlBorderColor">#FF464646</Color>
+    <Color x:Key="ControlBackgroundColor">#FF505050</Color>
+
+
+    <Color x:Key="HighlightBackground">#FF32537B</Color>
+    <Color x:Key="HighlightButton">#FF313131</Color>
+
+    <Color x:Key="BorderColor">#FF1D6A6B</Color>
+
+    <Color x:Key="TestColor">#FFFF00FF</Color>
+    <Color x:Key="TestColor2">#FF00FFFF</Color>
+    
+    <!-- ICONS -->
+    <BitmapImage x:Key="IconSource" UriSource="pack://application:,,,/NoPlot;component/resources/lineWhite.ico"/>
+    <BitmapImage x:Key="IconImgSrc" UriSource="pack://application:,,,/NoPlot;component/resources/line_016w.png"/>
+
+</ResourceDictionary>

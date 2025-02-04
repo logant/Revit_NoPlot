@@ -1,0 +1,113 @@
+﻿<UserControl x:Class="LINECommon.Windows.Controls.ColorComponentSlider"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:LINECommon.Windows.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="50" d:DesignWidth="400">
+    <UserControl.Resources>
+
+        <local:ComponentConverter x:Key ="ComponentConverter" />
+        
+        <ResourceDictionary x:Key="CommonResources" Source="../Styles/Brushes.xaml"/>
+            
+        <!--COLOR COMPONENT SLIDER-->
+        <Style x:Key="ClrCompButtonStyle" TargetType="{x:Type RepeatButton}">
+            <Setter Property="SnapsToDevicePixels" Value="true" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="IsTabStop" Value="false" />
+            <Setter Property="Focusable" Value="false" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Border Background="Transparent" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ClrCompThumb" TargetType="{x:Type Thumb}">
+            <Setter Property="SnapsToDevicePixels" Value="true" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="Height" Value="20" />
+            <Setter Property="Width" Value="40"></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Grid>
+                            <Border x:Name="Rectangle"                 Background="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=Darkened}" CornerRadius="0,5,5,0"/>
+                            <TextBlock FontSize="12" FontWeight="Bold" Foreground="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=TextForeground}" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat=" {0}: {1:000}">
+                                        <Binding Path="Prefix" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=UserControl}"/>
+                                        <Binding Path="Value" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Slider}" Converter="{StaticResource ComponentConverter}"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--Template when the orientation of the Slider is Horizontal.-->
+        <ControlTemplate x:Key="ClrCompSlider" TargetType="{x:Type Slider}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TickBar x:Name="TopTick" SnapsToDevicePixels="True" Placement="Top" Height="4" Visibility="Collapsed">
+                    <TickBar.Fill>
+                        <SolidColorBrush Color="Transparent" />
+                    </TickBar.Fill>
+                </TickBar>
+                <Border x:Name="TrackBackground" Margin="0,0,0,0" Height="1" Grid.Row="1" BorderThickness="0" Background="{DynamicResource ResourceKey=ForegroundPrimaryBrush}"/>
+                <Ellipse Grid.Row="1" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="4" Height="4" Fill="{DynamicResource ResourceKey=ForegroundPrimaryBrush}"/>
+                <Ellipse Grid.Row="1" Margin="0" HorizontalAlignment="Right" VerticalAlignment="Center" Width="4" Height="4" Fill="{DynamicResource ResourceKey=ForegroundPrimaryBrush}"/>
+                <Track Grid.Row="1" x:Name="PART_Track">
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton Style="{StaticResource ClrCompButtonStyle}" Command="Slider.DecreaseLarge" />
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb Style="{StaticResource ClrCompThumb}" />
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton Style="{StaticResource ClrCompButtonStyle}" Command="Slider.IncreaseLarge" />
+                    </Track.IncreaseRepeatButton>
+                </Track>
+
+                <TickBar x:Name="BottomTick" SnapsToDevicePixels="True" Grid.Row="2" Fill="{TemplateBinding Foreground}" 
+                     Placement="Bottom" Height="4" Visibility="Collapsed" />
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="TickPlacement" Value="TopLeft">
+                    <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
+                </Trigger>
+                <Trigger Property="TickPlacement" Value="BottomRight">
+                    <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                </Trigger>
+                <Trigger Property="TickPlacement" Value="Both">
+                    <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <Style x:Key="ClrSlider" TargetType="{x:Type Slider}">
+            <Setter Property="SnapsToDevicePixels" Value="true" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="Template" Value="{StaticResource ClrCompSlider}" />
+        </Style>
+    </UserControl.Resources>
+    
+    <Grid>
+        <Slider Name="ComponentSlider" Style="{DynamicResource ClrSlider}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="20,0,0,0" ValueChanged="RangeBase_OnValueChanged"
+                Minimum="0" Maximum="1.0" MouseDoubleClick="ComponentSlider_OnMouseDoubleClick"/>
+        <Border Name="SwatchRect" Margin="0" HorizontalAlignment="Left" VerticalAlignment="Center" Height="20" Background="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=MainColor}"
+                CornerRadius="5,0,0,5"/>
+        <TextBox Name="ValueTextBox" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="25" Margin="10,0,10,0" Visibility="Hidden" KeyUp="ValueTextBox_OnKeyUp" TextAlignment="Center"/>
+    </Grid>
+</UserControl>
